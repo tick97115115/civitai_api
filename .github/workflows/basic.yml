@@ -34,10 +34,10 @@ jobs:
         
       # Runs a single command using the runners shell
       - name: Run a one-line script
-        run: echo Hello, world! | tee -a "$GITHUB_OUTPUT"
+        run: echo "::debug::Hello, world!"
 
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
-          echo Add other actions to build, | tee -a "$GITHUB_OUTPUT"
-          echo test, and deploy your project. | tee -a "$GITHUB_OUTPUT"
+          echo "::debug::Add other actions to build,"
+          echo "::debug::test, and deploy your project."
