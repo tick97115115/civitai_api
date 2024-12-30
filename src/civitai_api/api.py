@@ -18,31 +18,21 @@ API_URL_ModelVersion_By_VersionId = urljoin(API_URL_V1, "model-versions/")  # "h
 API_URL_ModelVersion_By_Hash = urljoin(API_URL_V1, "model-versions/by-hash/") # "https://civitai.com/api/v1/model-versions/by-hash/:hash"
 API_URL_Tags = urljoin(API_URL_V1, "tags") # https://civitai.com/api/v1/tags
 
-API_KEY: str | None = None
-
-def check_request_bearer(request: httpx.Request):
-    if API_KEY:
-        request.headers["Authorization"] = f"Bearer {API_KEY}"
-    # else:
-    #     raise ValueError("No API key provided")
-
-async def check_request_bearer_async(request: httpx.Request):
-    if API_KEY:
-        request.headers["Authorization"] = f"Bearer {API_KEY}"
-
 def get_params(params: dict) -> dict:
     params.pop("self", None)
     return {k: str(v) for k, v in params.items() if v is not None}
 
 class CivitaiAPI:
     def __init__(self, api_key: Optional[str] = None, proxy: Optional[str] = None):
-        API_KEY = api_key
+        self.api_key = api_key
+        self.proxy = proxy
+        headers = {'Authorization': f"Bearer {self.api_key}"}
         if (proxy != None):
-            self.client = httpx.Client(proxy=proxy, event_hooks={"request": [check_request_bearer]})
-            self.async_client = httpx.AsyncClient(proxy=proxy, event_hooks={"request": [check_request_bearer_async]})
+            self.client = httpx.Client(proxy=proxy, event_hooks={"request": []}, headers=headers)
+            self.async_client = httpx.AsyncClient(proxy=proxy, event_hooks={"request": []}, headers=headers)
         else:
-            self.client = httpx.Client(event_hooks={"request": [check_request_bearer]})
-            self.async_client = httpx.AsyncClient(event_hooks={"request": [check_request_bearer_async]})
+            self.client = httpx.Client(event_hooks={"request": []}, headers=headers)
+            self.async_client = httpx.AsyncClient(event_hooks={"request": []}, headers=headers)
 
     def __del__(self):
         self.client.close()
@@ -74,7 +64,7 @@ class CivitaiAPI:
         response = self.client.get(API_URL_V1_Creators, params=query_params)
 
         return Response_Creaters(**response.json())
-     
+
     async def async_get_creators_v1(
             self, 
             limit: Optional[int] = None, 
@@ -102,7 +92,7 @@ class CivitaiAPI:
         response = self.client.get(API_URL_V1_Images, params=query_params)
 
         return Response_Images(**response.json())
-    
+
     async def async_get_images_V1(
             self,
             limit: Optional[int] = None, # The number of results to be returned per page. This can be a number between 0 and 200. By default, each page will return 100 results.

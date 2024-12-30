@@ -2,7 +2,7 @@ import enum
 from pydantic import BaseModel
 
 class NsfwLevel(enum.Enum):
-    None = 'None'
+    None_ = 'None'
     Soft = 'Soft'
     Mature = 'Mature'
     X = 'X'
