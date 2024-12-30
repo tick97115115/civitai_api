@@ -29,15 +29,15 @@ jobs:
       - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
       # You are now able to use PDM in your workflow
-      - name: Install dependencies
-        run: pdm install
+      # - name: Install dependencies
+      #   run: pdm install
         
       # Runs a single command using the runners shell
       - name: Run a one-line script
-        run: echo Hello, world!
+        run: echo Hello, world! | tee -a "$GITHUB_OUTPUT"
 
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo Add other actions to build, | tee -a "$GITHUB_OUTPUT"
+          echo test, and deploy your project. | tee -a "$GITHUB_OUTPUT"
