@@ -1,15 +1,15 @@
-
+from dotenv import load_dotenv
 from civitai_api.api import CivitaiAPI
 import pytest
 import anyio
+import os
 pytestmark = pytest.mark.anyio
 
+load_dotenv()
 
-proxy = "http://127.0.0.1:17890"
-api_key = "d250ad5b931cd1ab4895b66ae2d42149"
+proxy = os.environ['PROXY']
+api_key = os.environ['API_KEY']
 
-
-# client = CivitaiAPI(proxy=proxy, api_key=api_key)
 @pytest.fixture
 def client():
     return CivitaiAPI(proxy=proxy, api_key=api_key)
