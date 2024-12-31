@@ -7,8 +7,8 @@ pytestmark = pytest.mark.anyio
 
 load_dotenv()
 
-proxy = os.environ['PROXY']
-api_key = os.environ['API_KEY']
+proxy = os.environ.get('PROXY', None)
+api_key = os.environ.get('API_KEY', None)
 
 @pytest.fixture
 def client():
