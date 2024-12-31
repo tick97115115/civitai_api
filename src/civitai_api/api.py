@@ -75,7 +75,7 @@ class CivitaiAPI:
             limit: Optional[int] = None, 
             page: Optional[int] = None, 
             query: Optional[str] = None
-            ) -> Coroutine[Response_Creaters]:
+            ) -> Response_Creaters:
         query_params = self.get_creators_v1_construct_query_params(limit, page, query)
         response = await self.async_client.get(API_URL_V1_Creators, params=query_params)
 
@@ -109,7 +109,7 @@ class CivitaiAPI:
             sort: Optional[Sort] = None, # The order in which you wish to sort the results
             period: Optional[Period] = None, # The time frame in which the images will be sorted
             page: Optional[int] = None, # The page from which to start fetching creators
-    ) -> Coroutine[Response_Images]:
+    ) -> Response_Images:
         query_params = get_params(locals())
         response = await self.async_client.get(API_URL_V1_Images, params=query_params)
 
