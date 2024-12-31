@@ -1,4 +1,4 @@
-from typing import Optional, Coroutine
+from typing import Optional, Coroutine, Dict
 import anyio.from_thread
 import httpx
 from civitai_api.models.creators import Response_Creaters
@@ -26,13 +26,18 @@ class CivitaiAPI:
     def __init__(self, api_key: Optional[str] = None, proxy: Optional[str] = None):
         self.api_key = api_key
         self.proxy = proxy
-        headers = {'Authorization': f"Bearer {self.api_key}"}
+        self.headers: Dict | None = None
+        if api_key is not None:
+            self.headers = {
+                "Authorization": f"Bearer {self.api_key}"
+            }
+
         if (proxy != None):
-            self.client = httpx.Client(proxy=proxy, event_hooks={"request": []}, headers=headers)
-            self.async_client = httpx.AsyncClient(proxy=proxy, event_hooks={"request": []}, headers=headers)
+            self.client = httpx.Client(proxy=proxy, event_hooks={"request": []}, headers=self.headers)
+            self.async_client = httpx.AsyncClient(proxy=proxy, event_hooks={"request": []}, headers=self.headers)
         else:
-            self.client = httpx.Client(event_hooks={"request": []}, headers=headers)
-            self.async_client = httpx.AsyncClient(event_hooks={"request": []}, headers=headers)
+            self.client = httpx.Client(event_hooks={"request": []}, headers=self.headers)
+            self.async_client = httpx.AsyncClient(event_hooks={"request": []}, headers=self.headers)
 
     def __del__(self):
         self.client.close()
