@@ -1,8 +1,10 @@
-from typing import Optional, Coroutine, Dict
+import enum
+from typing import List, Optional, Coroutine, Dict
 import anyio.from_thread
 import httpx
 from civitai_api.models.creators import Response_Creaters
 from civitai_api.models.images import NsfwLevel, Sort, Period, Response_Images
+from civitai_api.models.models import Response_Models_Type
 import anyio
 import os
 from urllib.parse import urljoin
@@ -21,6 +23,17 @@ API_URL_Tags = urljoin(API_URL_V1, "tags") # https://civitai.com/api/v1/tags
 def get_params(params: dict) -> dict:
     params.pop("self", None)
     return {k: str(v) for k, v in params.items() if v is not None}
+
+class Sort(enum.Enum):
+    Highest_Rated = 'Highest Rated'
+    Most_Downloaded = 'Most Downloaded'
+    Newest = 'Newest'
+
+class AllowCommercialUse(enum.Enum):
+    None_ = 'None'
+    Image = 'Image'
+    Rent = 'Rent'
+    Sell = 'Sell'
 
 class CivitaiAPI:
     def __init__(self, api_key: Optional[str] = None, proxy: Optional[str] = None):
@@ -114,3 +127,29 @@ class CivitaiAPI:
         response = await self.async_client.get(API_URL_V1_Images, params=query_params)
 
         return Response_Images(**response.json())
+    
+    def get_models(
+            self,
+            limit: 	Optional[int], 	# The number of results to be returned per page. This can be a number between 1 and 100. By default, each page will return 100 results
+            page: 	Optional[int], 	# The page from which to start fetching models
+            query: 	Optional[str], 	# Search query to filter models by name
+            tag: 	Optional[str], 	# Search query to filter models by tag
+            username: 	Optional[str], 	# Search query to filter models by user
+            types: List[Response_Models_Type], 	# The type of model you want to filter with. If none is specified, it will return all types
+            sort: 	Sort, 	# The order in which you wish to sort the results
+            period: Period, 	# The time frame in which the models will be sorted
+            # rating: 	Optional[int], 	# (Deprecated) The rating you wish to filter the models with. If none is specified, it will return models with any rating
+            favorites: Optional[bool], 	# (AUTHED) Filter to favorites of the authenticated user (this requires an API token or session cookie)
+            hidden: Optional[bool], 	# (AUTHED) Filter to hidden models of the authenticated user (this requires an API token or session cookie)
+            primaryFileOnly: Optional[bool], 	# Only include the primary file for each model (This will use your preferred format options if you use an API token or session cookie)
+            allowNoCredit: Optional[bool], 	# Filter to models that require or don't require crediting the creator
+            allowDerivatives: Optional[bool], 	# Filter to models that allow or don't allow creating derivatives
+            allowDifferentLicenses: Optional[bool], # Filter to models that allow or don't allow derivatives to have a different license
+            allowCommercialUse: AllowCommercialUse, 	# Filter to models based on their commercial permissions
+            nsfw: Optional[bool], # If false, will return safer images and hide models that don't have safe images
+            supportsGeneration: Optional[bool] 	# If true, will return models that support generation
+    ):
+        if (favorites or hidden):
+            if not (self.api_key):
+                raise ValueError("If the \'favorites\' and the \'hidden\' params were set, The api_key must be provided while initialize CivitaiAPI class.")
+            

@@ -20,6 +20,6 @@ class TestCivitaiAPI_V1:
         assert True
 
 class TestCivitaiAPI_V1_Async:
-    async def test_async_get_creatros(self, client):
+    async def test_async_get_creators(self, client):
         response = await client.async_get_creators_v1()
         assert True
