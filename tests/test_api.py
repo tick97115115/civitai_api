@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
-from civitai_api.api import CivitaiAPI
+from civitai_api import api
 import pytest
+import httpx
 import anyio
 import os
 pytestmark = pytest.mark.anyio
@@ -9,17 +10,95 @@ load_dotenv()
 
 proxy = os.environ.get('PROXY', None)
 api_key = os.environ.get('API_KEY', None)
+print(f"Proxy: {proxy}")
+print(f"API Key: {api_key}")
 
 @pytest.fixture
-def client():
-    return CivitaiAPI(proxy=proxy, api_key=api_key)
+def httpx_client():
+    with httpx.Client(headers=api.get_params({"Authorization": f"Bearer {api_key}"}), proxy = proxy) as client:
+        yield client
 
-class TestCivitaiAPI_V1:
-    def test_get_creatros(self, client):
-        response = client.get_creators_v1()
-        assert True
+@pytest.fixture
+async def httpx_async_client():
+    async with httpx.AsyncClient(headers=api.get_params({"Authorization": f"Bearer {api_key}"}), proxy = proxy) as async_client:
+        yield async_client
 
-class TestCivitaiAPI_V1_Async:
-    async def test_async_get_creators(self, client):
-        response = await client.async_get_creators_v1()
-        assert True
+class TestAPI_V1:
+    def test_get_creators_v1(self, httpx_client):
+        response = api.get_creators_v1(httpx_client)
+    
+    def test_get_images_v1(self, httpx_client):
+        response = api.get_images_v1(httpx_client)
+    
+    def test_get_models_v1(self, httpx_client):
+        response = api.get_models_v1(httpx_client)
+
+    def test_get_model_byId_v1(self, httpx_client):
+        models = api.get_models_v1(httpx_client)
+
+        # for model in models.items:
+        #     response = api.get_model_by_id_v1(httpx_client, model.id)
+
+        response = api.get_model_by_id_v1(httpx_client, models.items[0].id)
+
+    def test_get_model_by_versionId_v1(self, httpx_client):
+        models = api.get_models_v1(httpx_client)
+
+        # for model in models.items:
+        #     for version in model.modelVersions:
+        #         response = api.get_model_by_versionId_v1(httpx_client, version.id)
+
+        version_id = models.items[0].modelVersions[0].id
+        response = api.get_model_by_versionId_v1(httpx_client, version_id)
+        
+    def test_get_model_by_hash_v1(self, httpx_client):
+        models = api.get_models_v1(httpx_client)
+
+        # for model in models.items:
+        #     for version in model.modelVersions:
+        #         for file in version.files:
+        #             hash = file.hashes.BLAKE3
+        #             response = api.get_model_by_hash_v1(httpx_client, hash)
+
+        hash = models.items[0].modelVersions[0].files[0].hashes.BLAKE3
+        response = api.get_model_by_hash_v1(httpx_client, hash)
+
+class TestAPI_V1_Async:
+    async def test_async_get_creators_v1(self, httpx_async_client):
+        response = await api.async_get_creators_v1(httpx_async_client)
+
+    async def test_async_get_images_v1(self, httpx_async_client):
+        response = await api.async_get_images_v1(httpx_async_client)
+
+    async def test_async_get_models_v1(self, httpx_async_client):
+        response = await api.async_get_models_v1(httpx_async_client)
+
+    async def test_async_get_model_byId_v1(self, httpx_async_client):
+        models = await api.async_get_models_v1(httpx_async_client)
+
+        # for model in models.items:
+        #     response = await api.async_get_model_by_id_v1(httpx_async_client, model.id)
+
+        response = await api.async_get_model_by_id_v1(httpx_async_client, models.items[0].id)
+
+    async def test_async_get_model_by_versionId_v1(self, httpx_async_client):
+        models = await api.async_get_models_v1(httpx_async_client)
+
+        # for model in models.items:
+        #     for version in model.modelVersions:
+        #         response = await api.async_get_model_by_versionId_v1(httpx_async_client, version.id)
+
+        version_id = models.items[0].modelVersions[0].id
+        response = await api.async_get_model_by_versionId_v1(httpx_async_client, version_id)
+
+    async def test_async_get_model_by_hash_v1(self, httpx_async_client):
+        models = await api.async_get_models_v1(httpx_async_client)
+
+        # for model in models.items:
+        #     for version in model.modelVersions:
+        #         for file in version.files:
+        #             hash = file.hashes.BLAKE3
+        #             response = await api.async_get_model_by_hash_v1(httpx_async_client, hash)
+
+        hash = models.items[0].modelVersions[0].files[0].hashes.BLAKE3
+        response = await api.async_get_model_by_hash_v1(httpx_async_client, hash)

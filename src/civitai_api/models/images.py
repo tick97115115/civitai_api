@@ -1,5 +1,6 @@
 import enum
-from pydantic import BaseModel
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, Field
 
 class NsfwLevel(enum.Enum):
     None_ = 'None'
@@ -26,19 +27,48 @@ class Response_Images_Stats(BaseModel):
     heartCount: int # The number of heart reactions
     commentCount: int # The number of comment reactions
 
-class Response_Images_Meta(BaseModel):
+class Response_Images_Meta_CivitaiResources_Type(enum.Enum):
+    checkpoint = "checkpoint"
+    lora = "lora"
+
+class Response_Images_Meta_Resources(BaseModel):
+    hash: str
+    name: str
+    type: Response_Images_Meta_CivitaiResources_Type
+    weight: float | None = None
+
+class Response_Images_Meta_CivitaiResources(BaseModel):
+    type: Response_Images_Meta_CivitaiResources_Type
+    weight: Optional[float] = None
+    modelVersionId: int
+    modelVersionName: str | None = None
+
+class Response_Images_Meta(BaseModel): # this field is a non-structured object that contains additional information about the image, the meta structure will be different for each webui
     Size: str
     seed: int
+    vaes: str | None = None
+    comfy: str | None = None # the json data str
     Model: str
     steps: int
     prompt: str
     sampler: str
+    Version: str # webui version str
     cfgScale: int
-    Clip_skip: str
-    Hires_upscale: str
-    Hires_upscaler: str
+    clipSkip: str
+    resources: List[Response_Images_Meta_Resources]
+    civitaiResources: List[Response_Images_Meta_CivitaiResources] # The generation process used model resource information
+    Hires_upscale: str | None = None
+    Hires_upscaler: str | None = None
     negativePrompt: str
-    Denoising_strength: str
+    Denoising_strength: str | None = None
+    ADetailer_model: str | None = Field(default=None, alias="ADetailer model")
+    ADetailer_version: str | None = Field(default=None, alias="ADetailer version") # version str
+    ADetailer_mask_blur: str | None = Field(default=None, alias="ADetailer mask blur") # float str
+    ADetailer_confidence: str | None = Field(default=None, alias="ADetailer confidence") # float str
+    ADetailer_dilate_erode: str | None = Field(default=None, alias="ADetailer dilate erode") # float str
+    ADetailer_inpaint_padding: str | None = Field(default=None, alias="ADetailer inpaint padding") # float str
+    ADetailer_denoising_strength: str | None = Field(default=None, alias="ADetailer denoising strength") # float str
+    ADetailer_inpaint_only_masked: str | None = Field(default=None, alias="ADetailer inpaint only masked") # bool str
     #   "meta": {
     #     "Size": "512x768",
     #     "seed": 234871805,
@@ -55,13 +85,13 @@ class Response_Images_Meta(BaseModel):
     #   },
 
 class Response_Images_Metadata(BaseModel):
-    nextCursor: int   # The id of the first image in the next batch
-    currentPage: int  	# The the current page you are at (if paging)
-    pageSize: int     # The the size of the batch (if paging)
+    nextCursor: int | str  # The id of the first image in the next batch
+    currentPage: Optional[int] = None # The the current page you are at (if paging)
+    pageSize: Optional[int] = None  # The the size of the batch (if paging)
     nextPage: str      #The url to get the next batch of items
 
-class Response_Images(BaseModel):
-    id: int	#The id of the image
+class Response_Images_Item(BaseModel):
+    id: int	# The id of the image
     url: str # The url of the image at it's source resolution
     hash: str # The blurhash of the image
     width: int # The width of the image
@@ -71,6 +101,10 @@ class Response_Images(BaseModel):
     createdAt: str # (ISO 8601 format) The date the image was posted
     postId: int # The ID of the post the image belongs to
     stats: Response_Images_Stats
-    meta: dict # this field is a non-structured object that contains additional information about the image, the meta structure will be different for each webui
-    username: str # The username of the creator
+    meta: Dict | None = None # this field is a non-structured object that contains additional information about the image, the meta structure will be different for each webui
+    username: Optional[str] # The username of the creator
+    baseModel: Optional[str] # The base model of the image
+
+class Response_Images(BaseModel):
+    items: List[Response_Images_Item]
     metadata: Response_Images_Metadata

@@ -4,10 +4,13 @@ import anyio.from_thread
 import httpx
 from civitai_api.models.creators import Response_Creaters
 from civitai_api.models.images import NsfwLevel, Sort, Period, Response_Images
-from civitai_api.models.models import Response_Models_Type
+from civitai_api.models.models import Response_Models, Response_Models_Type, Response_Models_modelVersion
+from civitai_api.models.model_by_version_id import Response_ModelByVersionId
 import anyio
 import os
 from urllib.parse import urljoin
+
+from civitai_api.models.models_by_id import Response_Model_ById
 
 # API endpoints references: https://github.com/civitai/civitai/wiki/REST-API-Reference
 
@@ -22,7 +25,17 @@ API_URL_Tags = urljoin(API_URL_V1, "tags") # https://civitai.com/api/v1/tags
 
 def get_params(params: dict) -> dict:
     params.pop("self", None)
+    params.pop("httpx_client", None)
+    params.pop("httpx_async_client", None)
     return {k: str(v) for k, v in params.items() if v is not None}
+
+def is_running_anyio_loop():
+    try:
+        # Attempt to get the current task
+        anyio.get_current_task()
+        return True  # If successful, an AnyIO event loop is running
+    except RuntimeError:
+        return False  # No running AnyIO event loop
 
 class Sort(enum.Enum):
     Highest_Rated = 'Highest Rated'
@@ -35,121 +48,154 @@ class AllowCommercialUse(enum.Enum):
     Rent = 'Rent'
     Sell = 'Sell'
 
-class CivitaiAPI:
-    def __init__(self, api_key: Optional[str] = None, proxy: Optional[str] = None):
-        self.api_key = api_key
-        self.proxy = proxy
-        self.headers: Dict | None = None
-        if api_key is not None:
-            self.headers = {
-                "Authorization": f"Bearer {self.api_key}"
-            }
+def get_creators_v1(
+        httpx_client:httpx.Client,
+        limit: Optional[int] = None, 
+        page: Optional[int] = None, 
+        query: Optional[str] = None
+        ) -> Response_Creaters:
+    query_params = get_params(locals())
+    response = httpx.get(API_URL_V1_Creators, params=query_params)
+    return Response_Creaters(**response.json())
 
-        if (proxy != None):
-            self.client = httpx.Client(proxy=proxy, event_hooks={"request": []}, headers=self.headers)
-            self.async_client = httpx.AsyncClient(proxy=proxy, event_hooks={"request": []}, headers=self.headers)
-        else:
-            self.client = httpx.Client(event_hooks={"request": []}, headers=self.headers)
-            self.async_client = httpx.AsyncClient(event_hooks={"request": []}, headers=self.headers)
+async def async_get_creators_v1(
+        httpx_async_client:httpx.AsyncClient,
+        limit: Optional[int] = None, 
+        page: Optional[int] = None, 
+        query: Optional[str] = None
+        ) -> Response_Creaters:
+    query_params = get_params(locals())
+    response = await httpx_async_client.get(API_URL_V1_Creators, params=query_params)
+    return Response_Creaters(**response.json())
 
-    def __del__(self):
-        self.client.close()
-        anyio.from_thread.run(self.async_client.aclose)
+def get_images_v1(
+        httpx_client:httpx.Client,
+        limit: Optional[int] = None, # The number of results to be returned per page. This can be a number between 0 and 200. By default, each page will return 100 results.
+        postId: Optional[int] = None, # The ID of a post to get images from
+        modelId: Optional[int] = None, # The ID of a model to get images from (model gallery)
+        modelVersionId: Optional[int] = None, # The ID of a model version to get images from (model gallery filtered to version)
+        username: Optional[str] = None, # Filter to images from a specific user
+        nsfw: Optional[bool | NsfwLevel] = None, # Filter to images that contain mature content flags or not (undefined returns all)
+        sort: Optional[Sort] = None, # The order in which you wish to sort the results
+        period: Optional[Period] = None, # The time frame in which the images will be sorted
+        page: Optional[int] = None, # The page from which to start fetching creators
+        ) -> Response_Images:
+    query_params = get_params(locals())
+    response = httpx_client.get(API_URL_V1_Images, params=query_params)
+    return Response_Images(**response.json())
 
-    def get_creators_v1_construct_query_params(
-            self, 
-            limit: Optional[int] = None, 
-            page: Optional[int] = None, 
-            query: Optional[str] = None
-            ) -> dict:
-        query_params = {
-            "limit": str(limit) if limit is not None else None,
-            "page": str(page) if page is not None else None,
-            "query": query if query is not None else None,
-        }
-        filtered_params = {k: v for k, v in query_params.items() if v is not None}
-        if len(filtered_params) == 0:
-            filtered_params = None
-        return filtered_params
+async def async_get_images_v1(
+        httpx_async_client:httpx.AsyncClient,
+        limit: Optional[int] = None, # The number of results to be returned per page. This can be a number between 0 and 200. By default, each page will return 100 results.
+        postId: Optional[int] = None, # The ID of a post to get images from
+        modelId: Optional[int] = None, # The ID of a model to get images from (model gallery)
+        modelVersionId: Optional[int] = None, # The ID of a model version to get images from (model gallery filtered to version)
+        username: Optional[str] = None, # Filter to images from a specific user
+        nsfw: Optional[bool | NsfwLevel] = None, # Filter to images that contain mature content flags or not (undefined returns all)
+        sort: Optional[Sort] = None, # The order in which you wish to sort the results
+        period: Optional[Period] = None, # The time frame in which the images will be sorted
+        page: Optional[int] = None, # The page from which to start fetching creators
+) -> Response_Images:
+    query_params = get_params(locals())
+    response = await httpx_async_client.get(API_URL_V1_Images, params=query_params)
+    return Response_Images(**response.json())
 
-    def get_creators_v1(
-            self, 
-            limit: Optional[int] = None, 
-            page: Optional[int] = None, 
-            query: Optional[str] = None
-            ) -> Response_Creaters:
-        query_params = self.get_creators_v1_construct_query_params(limit, page, query)
-        response = self.client.get(API_URL_V1_Creators, params=query_params)
-
-        return Response_Creaters(**response.json())
-
-    async def async_get_creators_v1(
-            self, 
-            limit: Optional[int] = None, 
-            page: Optional[int] = None, 
-            query: Optional[str] = None
-            ) -> Response_Creaters:
-        query_params = self.get_creators_v1_construct_query_params(limit, page, query)
-        response = await self.async_client.get(API_URL_V1_Creators, params=query_params)
-
-        return Response_Creaters(**response.json())
-
-    def get_images_v1(
-            self,
-            limit: Optional[int] = None, # The number of results to be returned per page. This can be a number between 0 and 200. By default, each page will return 100 results.
-            postId: Optional[int] = None, # The ID of a post to get images from
-            modelId: Optional[int] = None, # The ID of a model to get images from (model gallery)
-            modelVersionId: Optional[int] = None, # The ID of a model version to get images from (model gallery filtered to version)
-            username: Optional[str] = None, # Filter to images from a specific user
-            nsfw: Optional[bool | NsfwLevel] = None, # Filter to images that contain mature content flags or not (undefined returns all)
-            sort: Optional[Sort] = None, # The order in which you wish to sort the results
-            period: Optional[Period] = None, # The time frame in which the images will be sorted
-            page: Optional[int] = None, # The page from which to start fetching creators
-            ) -> Response_Images:
-        query_params = get_params(locals())
-        response = self.client.get(API_URL_V1_Images, params=query_params)
-
-        return Response_Images(**response.json())
-
-    async def async_get_images_V1(
-            self,
-            limit: Optional[int] = None, # The number of results to be returned per page. This can be a number between 0 and 200. By default, each page will return 100 results.
-            postId: Optional[int] = None, # The ID of a post to get images from
-            modelId: Optional[int] = None, # The ID of a model to get images from (model gallery)
-            modelVersionId: Optional[int] = None, # The ID of a model version to get images from (model gallery filtered to version)
-            username: Optional[str] = None, # Filter to images from a specific user
-            nsfw: Optional[bool | NsfwLevel] = None, # Filter to images that contain mature content flags or not (undefined returns all)
-            sort: Optional[Sort] = None, # The order in which you wish to sort the results
-            period: Optional[Period] = None, # The time frame in which the images will be sorted
-            page: Optional[int] = None, # The page from which to start fetching creators
-    ) -> Response_Images:
-        query_params = get_params(locals())
-        response = await self.async_client.get(API_URL_V1_Images, params=query_params)
-
-        return Response_Images(**response.json())
-    
-    def get_models(
-            self,
-            limit: 	Optional[int], 	# The number of results to be returned per page. This can be a number between 1 and 100. By default, each page will return 100 results
-            page: 	Optional[int], 	# The page from which to start fetching models
-            query: 	Optional[str], 	# Search query to filter models by name
-            tag: 	Optional[str], 	# Search query to filter models by tag
-            username: 	Optional[str], 	# Search query to filter models by user
-            types: List[Response_Models_Type], 	# The type of model you want to filter with. If none is specified, it will return all types
-            sort: 	Sort, 	# The order in which you wish to sort the results
-            period: Period, 	# The time frame in which the models will be sorted
-            # rating: 	Optional[int], 	# (Deprecated) The rating you wish to filter the models with. If none is specified, it will return models with any rating
-            favorites: Optional[bool], 	# (AUTHED) Filter to favorites of the authenticated user (this requires an API token or session cookie)
-            hidden: Optional[bool], 	# (AUTHED) Filter to hidden models of the authenticated user (this requires an API token or session cookie)
-            primaryFileOnly: Optional[bool], 	# Only include the primary file for each model (This will use your preferred format options if you use an API token or session cookie)
-            allowNoCredit: Optional[bool], 	# Filter to models that require or don't require crediting the creator
-            allowDerivatives: Optional[bool], 	# Filter to models that allow or don't allow creating derivatives
-            allowDifferentLicenses: Optional[bool], # Filter to models that allow or don't allow derivatives to have a different license
-            allowCommercialUse: AllowCommercialUse, 	# Filter to models based on their commercial permissions
-            nsfw: Optional[bool], # If false, will return safer images and hide models that don't have safe images
-            supportsGeneration: Optional[bool] 	# If true, will return models that support generation
-    ):
-        if (favorites or hidden):
-            if not (self.api_key):
-                raise ValueError("If the \'favorites\' and the \'hidden\' params were set, The api_key must be provided while initialize CivitaiAPI class.")
+def get_models_v1(
+        httpx_client:httpx.Client,
+        limit: 	Optional[int] = None, 	# The number of results to be returned per page. This can be a number between 1 and 100. By default, each page will return 100 results
+        page: 	Optional[int] = None, 	# The page from which to start fetching models
+        query: 	Optional[str] = None, 	# Search query to filter models by name
+        tag: 	Optional[str] = None, 	# Search query to filter models by tag
+        username: 	Optional[str] = None, 	# Search query to filter models by user
+        types: List[Response_Models_Type] | None = None, 	# The type of model you want to filter with. If none is specified, it will return all types
+        sort: 	Sort | None = None, 	# The order in which you wish to sort the results
+        period: Period | None = None, 	# The time frame in which the models will be sorted
+        # rating: 	Optional[int], 	# (Deprecated) The rating you wish to filter the models with. If none is specified, it will return models with any rating
+        favorites: Optional[bool] = None, 	# (AUTHED) Filter to favorites of the authenticated user (this requires an API token or session cookie)
+        hidden: Optional[bool] = None, 	# (AUTHED) Filter to hidden models of the authenticated user (this requires an API token or session cookie)
+        primaryFileOnly: Optional[bool] = None, 	# Only include the primary file for each model (This will use your preferred format options if you use an API token or session cookie)
+        allowNoCredit: Optional[bool] = None, 	# Filter to models that require or don't require crediting the creator
+        allowDerivatives: Optional[bool] = None, 	# Filter to models that allow or don't allow creating derivatives
+        allowDifferentLicenses: Optional[bool] = None, # Filter to models that allow or don't allow derivatives to have a different license
+        allowCommercialUse: AllowCommercialUse | None = None, 	# Filter to models based on their commercial permissions
+        nsfw: Optional[bool] = None, # If false, will return safer images and hide models that don't have safe images
+        supportsGeneration: Optional[bool] = None 	# If true, will return models that support generation
+) -> Response_Models:
+    if (favorites or hidden):
+        if not (httpx_client.headers):
+            raise ValueError("If the \'favorites\' and the \'hidden\' params were set, The api_key must be provided while initialize CivitaiAPI class.")
             
+    query_params = get_params(locals())
+    response = httpx_client.get(API_URL_V1_Models, params=query_params)
+    return Response_Models(**response.json())
+
+async def async_get_models_v1(
+        httpx_async_client:httpx.AsyncClient,
+        limit: 	Optional[int] = None, 	# The number of results to be returned per page. This can be a number between 1 and 100. By default, each page will return 100 results
+        page: 	Optional[int] = None, 	# The page from which to start fetching models
+        query: 	Optional[str] = None, 	# Search query to filter models by name
+        tag: 	Optional[str] = None, 	# Search query to filter models by tag
+        username: 	Optional[str] = None, 	# Search query to filter models by user
+        types: List[Response_Models_Type] | None = None, 	# The type of model you want to filter with. If none is specified, it will return all types
+        sort: 	Sort | None = None, 	# The order in which you wish to sort the results
+        period: Period | None = None, 	# The time frame in which the models will be sorted
+        # rating: 	Optional[int], 	# (Deprecated) The rating you wish to filter the models with. If none is specified, it will return models with any rating
+        favorites: Optional[bool] = None, 	# (AUTHED) Filter to favorites of the authenticated user (this requires an API token or session cookie)
+        hidden: Optional[bool] = None, 	# (AUTHED) Filter to hidden models of the authenticated user (this requires an API token or session cookie)
+        primaryFileOnly: Optional[bool] = None, 	# Only include the primary file for each model (This will use your preferred format options if you use an API token or session cookie)
+        allowNoCredit: Optional[bool] = None, 	# Filter to models that require or don't require crediting the creator
+        allowDerivatives: Optional[bool] = None, 	# Filter to models that allow or don't allow creating derivatives
+        allowDifferentLicenses: Optional[bool] = None, # Filter to models that allow or don't allow derivatives to have a different license
+        allowCommercialUse: AllowCommercialUse | None = None, 	# Filter to models based on their commercial permissions
+        nsfw: Optional[bool] = None, # If false, will return safer images and hide models that don't have safe images
+        supportsGeneration: Optional[bool] = None 	# If true, will return models that support generation
+) -> Response_Models:
+    if (favorites or hidden):
+        if not (httpx_async_client.headers):
+            raise ValueError("If the \'favorites\' and the \'hidden\' params were set, The api_key must be provided while initialize CivitaiAPI class.")
+            
+    query_params = get_params(locals())
+    response = await httpx_async_client.get(API_URL_V1_Models, params=query_params)
+    return Response_Models(**response.json())
+
+def get_model_by_id_v1(
+        httpx_client:httpx.Client,
+        modelId: int
+) -> Response_Model_ById:
+    response = httpx_client.get(urljoin(API_URL_V1_Model_By_Id, str(modelId)))
+    return Response_Model_ById(**response.json())
+
+async def async_get_model_by_id_v1(
+        httpx_async_client:httpx.AsyncClient,
+        modelId: int
+) -> Response_Model_ById:
+    response = await httpx_async_client.get(urljoin(API_URL_V1_Model_By_Id, str(modelId)))
+    return Response_Model_ById(**response.json())
+
+def get_model_by_versionId_v1(
+        httpx_client:httpx.Client,
+        modelVersionId: int
+) -> Response_Models_modelVersion:
+    response = httpx_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
+    return Response_Models_modelVersion(**response.json())
+
+async def async_get_model_by_versionId_v1(
+        httpx_async_client:httpx.AsyncClient,
+        modelVersionId: int
+) -> Response_Models_modelVersion:
+    response = await httpx_async_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
+    return Response_Models_modelVersion(**response.json())
+
+def get_model_by_hash_v1(
+        httpx_client:httpx.Client,
+        hash: str
+) -> Response_Models_modelVersion:
+    response = httpx_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
+    return Response_Models_modelVersion(**response.json())
+
+async def async_get_model_by_hash_v1(
+        httpx_async_client:httpx.AsyncClient,
+        hash: str
+) -> Response_Models_modelVersion:
+    response = await httpx_async_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
+    return Response_Models_modelVersion(**response.json())
