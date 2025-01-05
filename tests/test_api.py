@@ -16,12 +16,12 @@ print(f"API Key: {api_key}")
 
 @pytest.fixture
 def httpx_client():
-    with httpx.Client(headers=api.construct_header_from_dict({"Authorization": f"Bearer {api_key}"}), proxy = proxy) as client:
+    with httpx.Client(headers={"Authorization": f"Bearer {api_key}"}, proxy = proxy) as client:
         yield client
 
 @pytest.fixture
 async def httpx_async_client():
-    async with httpx.AsyncClient(headers=api.construct_header_from_dict({"Authorization": f"Bearer {api_key}"}), proxy = proxy) as async_client:
+    async with httpx.AsyncClient(headers={"Authorization": f"Bearer {api_key}"}, proxy = proxy) as async_client:
         yield async_client
 
 class TestAPI_V1:
@@ -30,7 +30,7 @@ class TestAPI_V1:
     
     def test_get_images_v1(self, httpx_client):
         # response = api.get_images_v1(httpx_client)
-        response = api.get_images_v1(httpx_client, postId=[11059742], nsfw=[NsfwLevel.X.value])
+        response = api.get_images_v1(httpx_client, postId=[11059742], nsfw=[NsfwLevel.X.value]) # when an argument takes an enum type as input, you must use it's .value property, otherwise the query paramter's string value will have a enum class name as prefix. (which isn't a valid input for API endpoint.) 
     
     def test_get_models_v1(self, httpx_client):
         response = api.get_models_v1(httpx_client)

@@ -23,11 +23,11 @@ API_URL_ModelVersion_By_VersionId = urljoin(API_URL_V1, "model-versions/")  # "h
 API_URL_ModelVersion_By_Hash = urljoin(API_URL_V1, "model-versions/by-hash/") # "https://civitai.com/api/v1/model-versions/by-hash/:hash"
 API_URL_Tags = urljoin(API_URL_V1, "tags") # https://civitai.com/api/v1/tags
 
-def construct_header_from_dict(params: dict) -> dict:
+# def construct_header_from_dict(params: dict) -> dict:
     # params.pop("self", None)
     # params.pop("httpx_client", None)
     # params.pop("httpx_async_client", None)
-    return {k: str(v) for k, v in params.items() if v is not None}
+    # return {k: str(v) for k, v in params.items() if v is not None}
 
 def construct_query_params_from_dict(params: Dict[str, List[Any]]):
     params.pop("self", None)
