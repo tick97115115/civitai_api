@@ -1,6 +1,6 @@
 [project]
-name = "civitai_api"
-version = "0.1.0"
+name = "civitai-api"
+version = "0.1.2"
 description = "Default template for PDM package"
 authors = [
     {name = "Pyon~ Pyon~~", email = "32931796+tick97115115@users.noreply.github.com"},

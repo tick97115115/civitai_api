@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from civitai_api import api
+from civitai_api.models.images import NsfwLevel
 import pytest
 import httpx
 import anyio
@@ -15,12 +16,12 @@ print(f"API Key: {api_key}")
 
 @pytest.fixture
 def httpx_client():
-    with httpx.Client(headers=api.get_params({"Authorization": f"Bearer {api_key}"}), proxy = proxy) as client:
+    with httpx.Client(headers=api.construct_header_from_dict({"Authorization": f"Bearer {api_key}"}), proxy = proxy) as client:
         yield client
 
 @pytest.fixture
 async def httpx_async_client():
-    async with httpx.AsyncClient(headers=api.get_params({"Authorization": f"Bearer {api_key}"}), proxy = proxy) as async_client:
+    async with httpx.AsyncClient(headers=api.construct_header_from_dict({"Authorization": f"Bearer {api_key}"}), proxy = proxy) as async_client:
         yield async_client
 
 class TestAPI_V1:
@@ -28,7 +29,8 @@ class TestAPI_V1:
         response = api.get_creators_v1(httpx_client)
     
     def test_get_images_v1(self, httpx_client):
-        response = api.get_images_v1(httpx_client)
+        # response = api.get_images_v1(httpx_client)
+        response = api.get_images_v1(httpx_client, postId=[11059742], nsfw=[NsfwLevel.X.value])
     
     def test_get_models_v1(self, httpx_client):
         response = api.get_models_v1(httpx_client)

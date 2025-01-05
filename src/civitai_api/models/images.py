@@ -85,10 +85,10 @@ class Response_Images_Meta(BaseModel): # this field is a non-structured object t
     #   },
 
 class Response_Images_Metadata(BaseModel):
-    nextCursor: int | str  # The id of the first image in the next batch
+    nextCursor: int | str | None = None  # The id of the first image in the next batch
     currentPage: Optional[int] = None # The the current page you are at (if paging)
     pageSize: Optional[int] = None  # The the size of the batch (if paging)
-    nextPage: str      #The url to get the next batch of items
+    nextPage: Optional[str] = None     #The url to get the next batch of items
 
 class Response_Images_Item(BaseModel):
     id: int	# The id of the image
