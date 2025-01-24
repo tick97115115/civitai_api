@@ -108,3 +108,14 @@ class Response_Images_Item(BaseModel):
 class Response_Images(BaseModel):
     items: List[Response_Images_Item]
     metadata: Response_Images_Metadata
+
+class Images_API_Opts(BaseModel):
+    limit: None | List[int] = None # The number of results to be returned per page. This can be a number between 0 and 200. By default, each page will return 100 results.
+    postId: None | List[int] = None # The ID of a post to get images from
+    modelId: None | List[int] = None # The ID of a model to get images from (model gallery)
+    modelVersionId: None | List[int] = None # The ID of a model version to get images from (model gallery filtered to version)
+    username: None | List[str] = None # Filter to images from a specific user
+    nsfw: None | List[NsfwLevel] = None # Filter to images that contain mature content flags or not (undefined returns all)
+    sort: None | List[Sort] = None # The order in which you wish to sort the results
+    period: None | List[Period] = None # The time frame in which the images will be sorted
+    page: None | int = None # The page from which to start fetching creators

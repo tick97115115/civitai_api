@@ -16,3 +16,8 @@ class Response_Creaters_Metadata(BaseModel):
 class Response_Creaters(BaseModel):
     items: List[Response_Creaters_Item]
     metadata: Response_Creaters_Metadata
+
+class Creators_API_Opts(BaseModel):
+    limit: None | List[int] = None, 
+    page: None | List[int] = None, 
+    query: None | List[str] = None
