@@ -1,5 +1,6 @@
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from typing import List, Dict, Any, Optional, Annotated
+from annotated_types import Len
+from pydantic import BaseModel, Field, Strict, StrictBool, StrictInt
 import enum
 from .images import Period
 
@@ -180,22 +181,24 @@ class AllowCommercialUse(enum.Enum):
     Rent = 'Rent'
     Sell = 'Sell'
 
+LimitInt = Annotated[int, Field(strict=True, ge=1, le=100)]
+Limit = Annotated[List[LimitInt], Len(1, 1)]
 class Models_API_Opts(BaseModel):
-    limit: 	None | List[int] = None 	# The number of results to be returned per page. This can be a number between 1 and 100. By default, each page will return 100 results
-    page: 	None | List[int] = None 	# The page from which to start fetching models
-    query: 	None | List[str] = None 	# Search query to filter models by name
-    tag: 	None | List[str] = None 	# Search query to filter models by tag
+    limit: 	None | Limit = None 	# The number of results to be returned per page. This can be a number between 1 and 100. By default, each page will return 100 results
+    page: 	None | Annotated[List[StrictInt], Len(1,1)] = None 	# The page from which to start fetching models
+    query: 	None | Annotated[List[str], Len(1,1)] = None 	# Search query to filter models by name
+    tag: 	None | Annotated[List[str], Len(1,1)] = None 	# Search query to filter models by tag
     username: 	Optional[str] = None 	# Search query to filter models by user
     types: List[Response_Models_Type] | None = None 	# The type of model you want to filter with. If none is specified, it will return all types
-    sort: 	None | List[Sort] = None 	# The order in which you wish to sort the results
-    period: None | List[Period] = None 	# The time frame in which the models will be sorted
+    sort: 	None | Annotated[List[Sort], Len(1,1)] = None 	# The order in which you wish to sort the results
+    period: None | Annotated[List[Period], Len(1,1)] = None 	# The time frame in which the models will be sorted
     # rating: 	Optional[int] 	# (Deprecated) The rating you wish to filter the models with. If none is specified, it will return models with any rating
-    favorites: None | List[bool] = None 	# (AUTHED) Filter to favorites of the authenticated user (this requires an API token or session cookie)
-    hidden: None | List[bool] = None 	# (AUTHED) Filter to hidden models of the authenticated user (this requires an API token or session cookie)
-    primaryFileOnly: None | List[bool] = None 	# Only include the primary file for each model (This will use your preferred format options if you use an API token or session cookie)
-    allowNoCredit: None | List[bool] = None 	# Filter to models that require or don't require crediting the creator
-    allowDerivatives: None | List[bool] = None 	# Filter to models that allow or don't allow creating derivatives
-    allowDifferentLicenses: None | List[bool] = None # Filter to models that allow or don't allow derivatives to have a different license
+    favorites: None | Annotated[List[StrictBool], Len(1,1)] = None 	# (AUTHED) Filter to favorites of the authenticated user (this requires an API token or session cookie)
+    hidden: None | Annotated[List[StrictBool], Len(1,1)] = None 	# (AUTHED) Filter to hidden models of the authenticated user (this requires an API token or session cookie)
+    primaryFileOnly: None | Annotated[List[StrictBool], Len(1,1)] = None 	# Only include the primary file for each model (This will use your preferred format options if you use an API token or session cookie)
+    allowNoCredit: None | Annotated[List[StrictBool], Len(1,1)] = None 	# Filter to models that require or don't require crediting the creator
+    allowDerivatives: None | Annotated[List[StrictBool], Len(1,1)] = None 	# Filter to models that allow or don't allow creating derivatives
+    allowDifferentLicenses: None | Annotated[List[StrictBool], Len(1,1)] = None # Filter to models that allow or don't allow derivatives to have a different license
     allowCommercialUse: List[AllowCommercialUse] | None = None 	# Filter to models based on their commercial permissions
-    nsfw: None | List[bool] = None # If false, will return safer images and hide models that don't have safe images
-    supportsGeneration: None | List[bool] = None 	# If true, will return models that support generation
+    nsfw: None | Annotated[List[StrictBool], Len(1,1)] = None # If false, will return safer images and hide models that don't have safe images
+    supportsGeneration: None | Annotated[List[StrictBool], Len(1,1)] = None 	# If true, will return models that support generation

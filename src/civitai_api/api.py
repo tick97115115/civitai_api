@@ -30,9 +30,6 @@ API_URL_Tags = urljoin(API_URL_V1, "tags") # https://civitai.com/api/v1/tags
     # return {k: str(v) for k, v in params.items() if v is not None}
 
 def construct_query_params_from_dict(params: Dict[str, List[Any]]):
-    params.pop("self", None)
-    params.pop("httpx_client", None)
-    params.pop("httpx_async_client", None)
     query_params: Dict[str, List[Any]] = {}
 
     for k,v in params.items():

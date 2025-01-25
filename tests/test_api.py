@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
-from civitai_api import api
-from civitai_api.models.images import NsfwLevel
+from src.civitai_api import api
+from src.civitai_api.models.images import Images_API_Opts, NsfwLevel
 import pytest
 import httpx
 import anyio
@@ -30,7 +30,8 @@ class TestAPI_V1:
     
     def test_get_images_v1(self, httpx_client):
         # response = api.get_images_v1(httpx_client)
-        response = api.get_images_v1(httpx_client, postId=[11059742], nsfw=[NsfwLevel.X.value]) # when an argument takes an enum type as input, you must use it's .value property, otherwise the query paramter's string value will have a enum class name as prefix. (which isn't a valid input for API endpoint.) 
+        opts: Images_API_Opts = Images_API_Opts(limit=[1], nsfw=[NsfwLevel.X.value], postId=[11059742])
+        response = api.get_images_v1(httpx_client,opts=opts) # when an argument takes an enum type as input, you must use it's .value property, otherwise the query paramter's string value will have a enum class name as prefix. (which isn't a valid input for API endpoint.) 
     
     def test_get_models_v1(self, httpx_client):
         response = api.get_models_v1(httpx_client)

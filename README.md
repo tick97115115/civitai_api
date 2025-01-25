@@ -52,7 +52,8 @@ For endpoints: creators, images and models, there are 3 functions (and 3 async i
 and every argument value have to be enclosed by a list:
 
 ```python
-response = api.get_images_v1(client, postId=[11059742], nsfw=[NsfwLevel.X.value]) 
+opts: Images_API_Opts = Images_API_Opts(limit=[1], nsfw=[NsfwLevel.X.value], postId=[11059742])
+response = api.get_images_v1(httpx_client,opts=opts)
 ```
 
 That's because the httpx library have it's own way to construct query paramters.
@@ -61,14 +62,17 @@ That's because the httpx library have it's own way to construct query paramters.
 
 #### for some arguments those takes List[enum] type as input
 
-You should always take care of when an argument takes a specific enum type as input, you should write like this:
+You should always take care of when an argument takes a specific enum type as input.
+For example the ["images"](https://github.com/civitai/civitai/wiki/REST-API-Reference#response-fields-1) endpoint can take nsfw as input, And I make every nsfw level option into a NsfwLevel enum type, when you want specific the nsfw level filter you should write like this: 
 
 ```python
 from civitai_api.models.images import NsfwLevel
 
 ......# after initialize httpx client
 
-response = api.get_images_v1(client, postId=[11059742], nsfw=[NsfwLevel.X.value]) 
+opts: Images_API_Opts = Images_API_Opts(limit=[1], nsfw=[NsfwLevel.X.value], postId=[11059742]) 
+# Do This: nsfw=[NsfwLevel.X.value]
+# Do Not: nsfw=[NsfwLevel.X]
 ```
 
 When an argument takes an enum type as input, you must use the 'value' property from an enum field like this:
