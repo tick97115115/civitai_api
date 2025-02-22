@@ -44,15 +44,13 @@ def construct_query_params_from_dict(params: Dict[str, List[Any]]):
     
     return query_params
     
-
-def is_running_anyio_loop():
-    try:
-        # Attempt to get the current task
-        anyio.get_current_task()
-        return True  # If successful, an AnyIO event loop is running
-    except RuntimeError:
-        return False  # No running AnyIO event loop
-
+# def is_running_anyio_loop():
+#     try:
+#         # Attempt to get the current task
+#         anyio.get_current_task()
+#         return True  # If successful, an AnyIO event loop is running
+#     except RuntimeError:
+#         return False  # No running AnyIO event loop
 
 def get_creators_v1(
         httpx_client:httpx.Client,
@@ -171,3 +169,47 @@ async def async_get_model_by_hash_v1(
 ) -> Response_Models_modelVersion:
     response = await httpx_async_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
     return Response_Models_modelVersion(**response.json())
+
+class CivitaiAPI:
+    def __init__(self, api_key: str, proxy: str | None = None):
+        self.api_key = api_key
+        self.proxy = proxy
+        self.httpx_client = httpx.Client(headers={"Authorization": f"Bearer {api_key}"}, proxy = proxy)
+        self.httpx_async_client = httpx.AsyncClient(headers={"Authorization": f"Bearer {api_key}"}, proxy = proxy)
+
+    def get_creators_v1(self, opts: Creators_API_Opts | None = None) -> Response_Creaters:
+        return get_creators_v1(self.httpx_client, opts)
+    
+    async def async_get_creators_v1(self, opts: Creators_API_Opts | None = None) -> Response_Creaters:
+        return await async_get_creators_v1(self.httpx_async_client, opts)
+    
+    def get_images_v1(self, opts: Images_API_Opts | None = None) -> Response_Images:
+        return get_images_v1(self.httpx_client, opts)
+    
+    async def async_get_images_v1(self, opts: Images_API_Opts | None = None) -> Response_Images:
+        return await async_get_images_v1(self.httpx_async_client, opts)
+    
+    def get_models_v1(self, opts: Models_API_Opts | None = None) -> Response_Models:
+        return get_models_v1(self.httpx_client, opts)
+    
+    async def async_get_models_v1(self, opts: Models_API_Opts | None = None) -> Response_Models:
+        return await async_get_models_v1(self.httpx_async_client, opts)
+    
+    def get_model_by_id_v1(self, modelId: int) -> Response_Model_ById:
+        return get_model_by_id_v1(self.httpx_client, modelId)
+    
+    async def async_get_model_by_id_v1(self, modelId: int) -> Response_Model_ById:
+        return await async_get_model_by_id_v1(self.httpx_async_client, modelId)
+    
+    def get_model_by_versionId_v1(self, modelVersionId: int) -> Response_Models_modelVersion:
+        return get_model_by_versionId_v1(self.httpx_client, modelVersionId)
+    
+    async def async_get_model_by_versionId_v1(self, modelVersionId: int) -> Response_Models_modelVersion:
+        return await async_get_model_by_versionId_v1(self.httpx_async_client, modelVersionId)
+    
+    def get_model_by_hash_v1(self, hash: str) -> Response_Models_modelVersion:
+        return get_model_by_hash_v1(self.httpx_client, hash)
+    
+    async def async_get_model_by_hash_v1(self, hash: str) -> Response_Models_modelVersion:
+        return await async_get_model_by_hash_v1(self.httpx_async_client, hash)
+    

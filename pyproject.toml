@@ -1,6 +1,6 @@
 [project]
 name = "civitai-api"
-version = "1.0.0"
+version = "1.1.0"
 description = "Default template for PDM package"
 authors = [
     {name = "Pyon~ Pyon~~", email = "32931796+tick97115115@users.noreply.github.com"},
@@ -14,7 +14,6 @@ license = {text = "MIT"}
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
-
 [tool.pdm]
 distribution = true
 
@@ -24,3 +23,4 @@ dev = [
     "trio>=0.28.0",
     "python-dotenv>=1.0.1",
 ]
+

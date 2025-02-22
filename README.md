@@ -8,7 +8,18 @@ It supports both Sync and Async request implementation, and both Async implement
 
 this was designed to be a flexale library, which only need you initialize an httpx library as the function's first argument.
 
-### 1. initialize an httpx client for function use
+### 0. Initialize an CivitaiAPI class
+
+```python
+from civitai_api.api import CivitaiAPI
+
+civitai_api = CivitaiAPI(api_key="xxxxxxxx")
+
+```
+
+To register your own api key, see [here](https://github.com/civitai/civitai/wiki/REST-API-Reference#authorization).
+
+#### Or initialize an httpx client (or async httpx client) and use with functions.
 
 for Sync Clinet:
 
