@@ -1,6 +1,9 @@
 import httpx
 from urllib.parse import urljoin
-from typing import Any, List,Dict
+from typing import Any, List, Dict, Type, TypeVar
+
+from .models.models import Models_API_Opts, Response_Models, Response_Models_modelVersion
+from .models.models_by_id import Response_Model_ById
 from .models.creators import Creators_API_Opts, Response_Creaters
 from .models.images import Images_API_Opts, Response_Images
 # API endpoints references: https://github.com/civitai/civitai/wiki/REST-API-Reference
@@ -13,6 +16,21 @@ API_URL_V1_Model_By_Id = urljoin(API_URL_V1, "models/") # "https://civitai.com/a
 API_URL_ModelVersion_By_VersionId = urljoin(API_URL_V1, "model-versions/")  # "https://civitai.com/api/v1/model-versions/:modelVersionId"
 API_URL_ModelVersion_By_Hash = urljoin(API_URL_V1, "model-versions/by-hash/") # "https://civitai.com/api/v1/model-versions/by-hash/:hash"
 API_URL_Tags = urljoin(API_URL_V1, "tags") # https://civitai.com/api/v1/tags
+
+class QueryParamsError(Exception):
+    def __init__(self, response_json: str):
+        self.response_json = response_json
+
+    def __str__(self):
+        return f"{self.response_json}"
+T = TypeVar('T')
+
+def response_check(response: httpx.Response, response_type: Type[T]) -> T:
+    obj = response.json()
+    if (hasattr(obj, 'items') and hasattr(obj, 'metadata')):
+        return response_type(**obj)
+    else:
+        raise QueryParamsError(response.text)
 
 def construct_query_params_from_dict(params: Dict[str, List[Any]]):
     query_params: Dict[str, List[Any]] = {}
@@ -38,7 +56,8 @@ def creators(
     else:
         query_params = None
     response = httpx.get(API_URL_V1_Creators, params=query_params)
-    return Response_Creaters(**response.json())
+    result = response_check(response, Response_Creaters)
+    return result
 
 async def async_creators(
         httpx_async_client:httpx.AsyncClient,
@@ -49,7 +68,8 @@ async def async_creators(
     else:
         query_params = None
     response = await httpx_async_client.get(API_URL_V1_Creators, params=query_params)
-    return Response_Creaters(**response.json())
+    result = response_check(response, Response_Creaters)
+    return result
 
 def images(
         httpx_client:httpx.Client,
@@ -60,7 +80,8 @@ def images(
     else:
         query_params = None
     response = httpx_client.get(API_URL_V1_Images, params=query_params)
-    return Response_Images(**response.json())
+    result = response_check(response, Response_Images)
+    return result
 
 async def async_images(
         httpx_async_client:httpx.AsyncClient,
@@ -71,4 +92,82 @@ async def async_images(
     else:
         query_params = None
     response = await httpx_async_client.get(API_URL_V1_Images, params=query_params)
-    return Response_Images(**response.json())
+    result = response_check(response, Response_Images)
+    return result
+
+def models(
+        httpx_client:httpx.Client,
+        opts: Models_API_Opts | None = None
+) -> Response_Models:
+    if (opts):
+        if (opts.favorites or opts.hidden):
+            if not (httpx_client.headers):
+                raise ValueError("If the \'favorites\' and the \'hidden\' params were set, The api_key must be provided while initialize CivitaiAPI class.")
+            
+    if opts:
+        query_params = construct_query_params_from_dict(opts.model_dump())
+    else:
+        query_params = None
+    response = httpx_client.get(API_URL_V1_Models, params=query_params)
+    result = response_check(response, Response_Models)
+    return result
+    
+
+async def async_models(
+        httpx_async_client:httpx.AsyncClient,
+        opts: Models_API_Opts | None = None
+) -> Response_Models:
+    if (opts):
+        if (opts.favorites or opts.hidden):
+            if not (httpx_async_client.headers):
+                raise ValueError("If the \'favorites\' and the \'hidden\' params were set, The api_key must be provided while initialize CivitaiAPI class.")
+            
+    if opts:
+        query_params = construct_query_params_from_dict(opts.model_dump())
+    else:
+        query_params = None
+    response = await httpx_async_client.get(API_URL_V1_Models, params=query_params)
+    result = response_check(response, Response_Models)
+    return result
+
+def get_model_by_id_v1(
+        httpx_client:httpx.Client,
+        modelId: int
+) -> Response_Model_ById:
+    response = httpx_client.get(urljoin(API_URL_V1_Model_By_Id, str(modelId)))
+    return Response_Model_ById(**response.json())
+
+async def async_get_model_by_id_v1(
+        httpx_async_client:httpx.AsyncClient,
+        modelId: int
+) -> Response_Model_ById:
+    response = await httpx_async_client.get(urljoin(API_URL_V1_Model_By_Id, str(modelId)))
+    return Response_Model_ById(**response.json())
+
+def get_model_by_versionId_v1(
+        httpx_client:httpx.Client,
+        modelVersionId: int
+) -> Response_Models_modelVersion:
+    response = httpx_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
+    return Response_Models_modelVersion(**response.json())
+
+async def async_get_model_by_versionId_v1(
+        httpx_async_client:httpx.AsyncClient,
+        modelVersionId: int
+) -> Response_Models_modelVersion:
+    response = await httpx_async_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
+    return Response_Models_modelVersion(**response.json())
+
+def get_model_by_hash_v1(
+        httpx_client:httpx.Client,
+        hash: str
+) -> Response_Models_modelVersion:
+    response = httpx_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
+    return Response_Models_modelVersion(**response.json())
+
+async def async_get_model_by_hash_v1(
+        httpx_async_client:httpx.AsyncClient,
+        hash: str
+) -> Response_Models_modelVersion:
+    response = await httpx_async_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
+    return Response_Models_modelVersion(**response.json())

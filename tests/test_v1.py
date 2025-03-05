@@ -3,7 +3,7 @@ import httpx
 import os
 pytestmark = pytest.mark.anyio
 
-from src.civitai_api.v1 import creators, async_creators, images, async_images
+from src.civitai_api.v1 import creators, async_creators, images, async_images, models, async_models
 from src.civitai_api.v1.models.creators import Response_Creaters, Creators_API_Opts
 from src.civitai_api.v1.models.images import Images_API_Opts, Response_Images
 from dotenv import load_dotenv
@@ -25,12 +25,27 @@ async def httpx_async_client():
 
 @pytest.fixture
 def creators_request_queru_params():
-    return Creators_API_Opts(limit=[20], page=[1], query=["Elesico"])
+    return Creators_API_Opts(
+        limit=[20], 
+        page=[1], 
+        query=["Elesico"]
+        )
 
 @pytest.fixture
 def images_request_query_params():
     from src.civitai_api.v1.models.images import NsfwLevel, Sort, Period
-    return Images_API_Opts(limit=[2], postId=[9178972], modelId=[949620], modelVersionId=[1063193], username=["Elesico"], nsfw=[NsfwLevel.X], sort=[Sort.Newest], period=[Period.AllTime], page=[2], total=[api_key])
+    return Images_API_Opts(
+        limit=[2], 
+        postId=[9178972], 
+        modelId=[949620], 
+        modelVersionId=[1063193], 
+        username=["Elesico"], 
+        nsfw=[NsfwLevel.X], 
+        sort=[Sort.Newest], 
+        period=[Period.AllTime], 
+        page=[2], 
+        total=[api_key]
+        )
 
 class TestAPI_V1:
     def test_creators(self, httpx_client, creators_request_queru_params):
@@ -58,3 +73,4 @@ class TestAPI_V1:
         assert len(response.items) == 2
         assert response.metadata.pageSize == 2
         assert response.metadata.currentPage == 2
+
