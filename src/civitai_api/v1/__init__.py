@@ -26,12 +26,22 @@ class QueryParamsError(Exception):
         return f"{self.response_json}"
 T = TypeVar('T')
 
-def response_check(response: httpx.Response, response_type: Type[T]) -> T:
+def response_check_for_multi_results(response: httpx.Response, response_type: Type[T]) -> T:
     obj = response.json()
-    if hasattr(obj, "items"):
-        return response_type(**obj)
-    else:
+    if hasattr(obj, "error"): # notice that for those api endpoints that return a single result, the error message is different
         raise QueryParamsError(response.text)
+    if hasattr(obj, "message"):
+        raise ConnectionAbortedError(obj) # Server connection limitation reached
+    else:
+        return response_type(**obj)
+    
+def response_check_for_single_result(response: httpx.Response, response_type: Type[T]) -> T:
+    obj = response.json()
+    if hasattr(obj, "error"):
+        FileNotFoundError(obj)
+    if hasattr(obj, "message"):
+        ConnectionAbortedError(obj)
+    return response_type(**obj)
 
 def construct_query_params_from_dict(params: Dict[str, List[Any]]):
     query_params: Dict[str, List[Any]] = {}
@@ -57,7 +67,7 @@ def creators(
     else:
         query_params = None
     response = httpx.get(API_URL_V1_Creators, params=query_params)
-    result = response_check(response, Response_Creaters)
+    result = response_check_for_multi_results(response, Response_Creaters)
     return result
 
 async def async_creators(
@@ -69,7 +79,7 @@ async def async_creators(
     else:
         query_params = None
     response = await httpx_async_client.get(API_URL_V1_Creators, params=query_params)
-    result = response_check(response, Response_Creaters)
+    result = response_check_for_multi_results(response, Response_Creaters)
     return result
 
 def images(
@@ -81,7 +91,7 @@ def images(
     else:
         query_params = None
     response = httpx_client.get(API_URL_V1_Images, params=query_params)
-    result = response_check(response, Response_Images)
+    result = response_check_for_multi_results(response, Response_Images)
     return result
 
 async def async_images(
@@ -93,7 +103,7 @@ async def async_images(
     else:
         query_params = None
     response = await httpx_async_client.get(API_URL_V1_Images, params=query_params)
-    result = response_check(response, Response_Images)
+    result = response_check_for_multi_results(response, Response_Images)
     return result
 
 def models(
@@ -110,7 +120,7 @@ def models(
     else:
         query_params = None
     response = httpx_client.get(API_URL_V1_Models, params=query_params)
-    result = response_check(response, Response_Models)
+    result = response_check_for_multi_results(response, Response_Models)
     return result
 
 async def async_models(
@@ -127,7 +137,7 @@ async def async_models(
     else:
         query_params = None
     response = await httpx_async_client.get(API_URL_V1_Models, params=query_params)
-    result = response_check(response, Response_Models)
+    result = response_check_for_multi_results(response, Response_Models)
     return result
 
 def get_model_by_id(
@@ -135,60 +145,48 @@ def get_model_by_id(
         modelId: int
 ) -> Response_Model_ById:
     response = httpx_client.get(urljoin(API_URL_V1_Model_By_Id, str(modelId)))
-    obj = response.json()
-    if hasattr(obj, "error"):
-        FileNotFoundError(obj)
-    return Response_Model_ById(**obj)
+    result = response_check_for_single_result(response, Response_Model_ById)
+    return result
 
 async def async_get_model_by_id(
         httpx_async_client:httpx.AsyncClient,
         modelId: int
 ) -> Response_Model_ById:
     response = await httpx_async_client.get(urljoin(API_URL_V1_Model_By_Id, str(modelId)))
-    obj = response.json()
-    if hasattr(obj, "error"):
-        FileNotFoundError(obj)
-    return Response_Model_ById(**obj)
+    result = response_check_for_single_result(response, Response_Model_ById)
+    return result
 
 def get_model_by_versionId(
         httpx_client:httpx.Client,
         modelVersionId: int
 ) -> Response_Models_modelVersion:
     response = httpx_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
-    obj = response.json()
-    if hasattr(obj, "error"):
-        FileNotFoundError(obj)
-    return Response_Models_modelVersion(**obj)
+    result = response_check_for_single_result(response, Response_Models_modelVersion)
+    return result
 
 async def async_get_model_by_versionId(
         httpx_async_client:httpx.AsyncClient,
         modelVersionId: int
 ) -> Response_Models_modelVersion:
     response = await httpx_async_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
-    obj = response.json()
-    if hasattr(obj, "error"):
-        FileNotFoundError(obj)
-    return Response_Models_modelVersion(**obj)
+    result = response_check_for_single_result(response, Response_Models_modelVersion)
+    return result
 
 def get_model_by_hash(
         httpx_client:httpx.Client,
         hash: str
 ) -> Response_Models_modelVersion:
     response = httpx_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
-    obj = response.json()
-    if hasattr(obj, "error"):
-        FileNotFoundError(obj)
-    return Response_Models_modelVersion(**obj)
+    result = response_check_for_single_result(response, Response_Models_modelVersion)
+    return result
 
 async def async_get_model_by_hash(
         httpx_async_client:httpx.AsyncClient,
         hash: str
 ) -> Response_Models_modelVersion:
     response = await httpx_async_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
-    obj = response.json()
-    if hasattr(obj, "error"):
-        FileNotFoundError(obj)
-    return Response_Models_modelVersion(**obj)
+    result = response_check_for_single_result(response, Response_Models_modelVersion)
+    return result
 
 def tags(
         httpx_client:httpx.Client,
@@ -199,7 +197,7 @@ def tags(
     else:
         query_params = None
     response = httpx_client.get(API_URL_Tags, params=query_params)
-    result = response_check(response, Response_Tags)
+    result = response_check_for_multi_results(response, Response_Tags)
     return result
 
 async def async_tags(
@@ -211,5 +209,5 @@ async def async_tags(
     else:
         query_params = None
     response = await httpx_async_client.get(API_URL_Tags, params=query_params)
-    result = response_check(response, Response_Tags)
+    result = response_check_for_multi_results(response, Response_Tags)
     return result

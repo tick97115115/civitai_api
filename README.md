@@ -1,5 +1,7 @@
 # civitai_api
 
+![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)
+
 This project provide a easy way to communicating with Civitai-API.
 
 It supports both Sync and Async request implementation, and both Async implementation (AsyncIO and Trio) by using Anyio.

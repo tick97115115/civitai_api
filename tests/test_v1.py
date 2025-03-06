@@ -3,13 +3,10 @@ import httpx
 import os
 pytestmark = pytest.mark.anyio
 
-from src.civitai_api.v1 import creators, async_creators, images, \
+from civitai_api.v1 import creators, async_creators, images, \
     async_images, models, async_models, get_model_by_id, async_get_model_by_id, \
     get_model_by_versionId, async_get_model_by_versionId, get_model_by_hash, \
     async_get_model_by_hash, tags, async_tags
-from src.civitai_api.v1.models.creators import Response_Creaters, Creators_API_Opts
-from src.civitai_api.v1.models.images import Images_API_Opts, Response_Images
-from src.civitai_api.v1.models.models import Response_Models
 from dotenv import load_dotenv
 load_dotenv()
 proxy = os.environ.get('PROXY', None)
@@ -29,6 +26,7 @@ async def httpx_async_client():
 
 @pytest.fixture
 def creators_request_queru_params():
+    from civitai_api.v1.models.creators import Creators_API_Opts
     return Creators_API_Opts(
         limit=[20], 
         page=[1], 
@@ -37,7 +35,7 @@ def creators_request_queru_params():
 
 @pytest.fixture
 def images_request_query_params():
-    from src.civitai_api.v1.models.images import NsfwLevel, Sort, Period
+    from civitai_api.v1.models.images import NsfwLevel, Sort, Period, Images_API_Opts
     return Images_API_Opts(
         limit=[2], 
         postId=[9178972], 
@@ -53,7 +51,7 @@ def images_request_query_params():
 
 @pytest.fixture
 def models_request_query_params():
-    from src.civitai_api.v1.models.models import Models_API_Opts, Sort, Period, Response_Models_Type, AllowCommercialUse
+    from civitai_api.v1.models.models import Models_API_Opts, Sort, Period, Response_Models_Type, AllowCommercialUse
     return Models_API_Opts(
         limit=[20],
         page=[1],
@@ -89,7 +87,7 @@ def model_hash():
 
 @pytest.fixture
 def tags_request_query_params():
-    from src.civitai_api.v1.models.tags import Tags_API_Opts
+    from civitai_api.v1.models.tags import Tags_API_Opts
     return Tags_API_Opts(
         limit=[20],
         page=[1],
