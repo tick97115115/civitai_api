@@ -37,7 +37,7 @@ def response_check_for_multi_results(response: httpx.Response, response_type: Ty
     
 def response_check_for_single_result(response: httpx.Response, response_type: Type[T]) -> T:
     obj = response.json()
-    if hasattr(obj, "error"):
+    if hasattr(obj, "error"): # only no result matches will return error msg.
         FileNotFoundError(obj)
     if hasattr(obj, "message"):
         ConnectionAbortedError(obj)
