@@ -61,7 +61,7 @@ class Response_ModelByVersionId(BaseModel):
     updatedAt: 	str 	# (ISO 8601) The date in which the version was updated
     downloadUrl: 	str 	# The download url to get the model file for this specific version
     trainedWords: 	List[str] 	# The words used to trigger the model
-    files: Response_Models_modelVersions_File
+    files: List[Response_Models_modelVersions_File]
     stats: Response_Models_modelVersions_Stats
     images: Response_Models_modelVersions_Image
     

@@ -74,10 +74,10 @@ class Response_Models_modelVersions_Files_VirusScanResult(StrEnum):
 
 class Response_Models_modelVersions_Files_Hashes(BaseModel):
     # AutoV2: str | None = None
-    SHA256: str | None = None
-    CRC32: str | None = None
-    BLAKE3: str | None = None
-    AutoV3: str | None = None
+    SHA256: str
+    CRC32: str
+    BLAKE3: str
+    AutoV3: str
 
 class Response_Models_modelVersions_File(BaseModel):
     name: str # file name
@@ -188,7 +188,7 @@ class Models_API_Opts(BaseModel):
     page: 	None | Annotated[List[StrictInt], Len(1,1)] = None 	# The page from which to start fetching models
     query: 	None | Annotated[List[str], Len(1,1)] = None 	# Search query to filter models by name
     tag: 	None | Annotated[List[str], Len(1,1)] = None 	# Search query to filter models by tag
-    username: 	Optional[str] = None 	# Search query to filter models by user
+    username: 	None | Annotated[List[str], Len(1,1)] = None 	# Search query to filter models by user
     types: List[Response_Models_Type] | None = None 	# The type of model you want to filter with. If none is specified, it will return all types
     sort: 	None | Annotated[List[Sort], Len(1,1)] = None 	# The order in which you wish to sort the results
     period: None | Annotated[List[Period], Len(1,1)] = None 	# The time frame in which the models will be sorted

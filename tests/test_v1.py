@@ -3,9 +3,13 @@ import httpx
 import os
 pytestmark = pytest.mark.anyio
 
-from src.civitai_api.v1 import creators, async_creators, images, async_images, models, async_models
+from src.civitai_api.v1 import creators, async_creators, images, \
+    async_images, models, async_models, get_model_by_id, async_get_model_by_id, \
+    get_model_by_versionId, async_get_model_by_versionId, get_model_by_hash, \
+    async_get_model_by_hash, tags, async_tags
 from src.civitai_api.v1.models.creators import Response_Creaters, Creators_API_Opts
 from src.civitai_api.v1.models.images import Images_API_Opts, Response_Images
+from src.civitai_api.v1.models.models import Response_Models
 from dotenv import load_dotenv
 load_dotenv()
 proxy = os.environ.get('PROXY', None)
@@ -47,6 +51,51 @@ def images_request_query_params():
         total=[api_key]
         )
 
+@pytest.fixture
+def models_request_query_params():
+    from src.civitai_api.v1.models.models import Models_API_Opts, Sort, Period, Response_Models_Type, AllowCommercialUse
+    return Models_API_Opts(
+        limit=[20],
+        page=[1],
+        query=["VSK-94 | Girls' Frontline"],
+        tag=["girls_frontline"],
+        username=["LeonDoesntDraw"],
+        types=[Response_Models_Type.LORA],
+        sort=[Sort.Newest],
+        period=[Period.AllTime],
+        rating=[5],
+        favorites=[False],
+        hidden=[False],
+        primaryFileOnly=[False],
+        # allowNoCredit=[True],
+        # allowDerivatives=[True],
+        allowDifferentLicenses=[True],
+        allowCommercialUse=[AllowCommercialUse.Image, AllowCommercialUse.Rent, AllowCommercialUse.Sell],
+        nsfw=[True],
+        supportsGeneration=[True],
+    )
+
+@pytest.fixture
+def model_id():
+    return 11821
+
+@pytest.fixture
+def model_version_id():
+    return 127062
+
+@pytest.fixture
+def model_hash():
+    return "253BD9C3037584A20AD46C833E9BC90A1F8F7EA031FD81BF1E8392DBC9C45F3E"
+
+@pytest.fixture
+def tags_request_query_params():
+    from src.civitai_api.v1.models.tags import Tags_API_Opts
+    return Tags_API_Opts(
+        limit=[20],
+        page=[1],
+        query=["girls_frontline"]
+        )
+
 class TestAPI_V1:
     def test_creators(self, httpx_client, creators_request_queru_params):
         query_params = creators_request_queru_params
@@ -74,3 +123,49 @@ class TestAPI_V1:
         assert response.metadata.pageSize == 2
         assert response.metadata.currentPage == 2
 
+def test_models(httpx_client, models_request_query_params):
+    response = models(httpx_client, models_request_query_params)
+    assert len(response.items) == 1
+    assert response.metadata.pageSize == 20
+    assert response.items[0].id == 11821
+
+
+async def test_async_models(httpx_async_client, models_request_query_params):
+    response = await async_models(httpx_async_client, models_request_query_params)
+    assert len(response.items) == 1
+    assert response.metadata.pageSize == 20
+    assert response.items[0].id == 11821
+
+def test_get_model_by_id(httpx_client, model_id):
+    response = get_model_by_id(httpx_client, model_id)
+    assert response.id == model_id
+
+async def test_async_get_model_by_id(httpx_async_client, model_id):
+    response = await async_get_model_by_id(httpx_async_client, model_id)
+    assert response.id == model_id
+
+def test_get_model_by_versionId(httpx_client, model_version_id):
+    response = get_model_by_versionId(httpx_client, model_version_id)
+    assert response.id == model_version_id
+
+async def test_async_get_model_by_versionId(httpx_async_client, model_version_id):
+    response = await async_get_model_by_versionId(httpx_async_client, model_version_id)
+    assert response.id == model_version_id
+
+def test_get_model_by_hash(httpx_client, model_hash):
+    response = get_model_by_hash(httpx_client, model_hash)
+    assert response.files[0].hashes.BLAKE3 == model_hash
+
+async def test_async_get_model_by_hash(httpx_async_client, model_hash):
+    response = await async_get_model_by_hash(httpx_async_client, model_hash)
+    assert response.files[0].hashes.BLAKE3 == model_hash
+
+def test_tags(httpx_client, tags_request_query_params):
+    response = tags(httpx_client, tags_request_query_params)
+    assert len(response.items) > 0
+    assert response.metadata.pageSize == 20
+
+async def test_async_tags(httpx_async_client, tags_request_query_params):
+    response = await async_tags(httpx_async_client, tags_request_query_params)
+    assert len(response.items) > 0
+    assert response.metadata.pageSize == 20
