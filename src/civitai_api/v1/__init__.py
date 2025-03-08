@@ -83,19 +83,19 @@ def creators(
         query_params = construct_query_params_from_dict(opts.model_dump())
     else:
         query_params = None
-    response = httpx.get(API_URL_V1_Creators, params=query_params)
+    response = httpx_client.get(API_URL_V1_Creators, params=query_params)
     result = response_check_for_multi_results(response, Response_Creaters)
     return result
 
 async def async_creators(
-        httpx_async_client:httpx.AsyncClient,
+        async_httpx_client:httpx.AsyncClient,
         opts: Creators_API_Opts | None = None
         ) -> Response_Creaters:
     if opts:
         query_params = construct_query_params_from_dict(opts.model_dump())
     else:
         query_params = None
-    response = await httpx_async_client.get(API_URL_V1_Creators, params=query_params)
+    response = await async_httpx_client.get(API_URL_V1_Creators, params=query_params)
     result = response_check_for_multi_results(response, Response_Creaters)
     return result
 
@@ -112,14 +112,14 @@ def images(
     return result
 
 async def async_images(
-        httpx_async_client:httpx.AsyncClient,
+        async_httpx_client:httpx.AsyncClient,
         opts: Images_API_Opts | None = None
 ) -> Response_Images:
     if opts:
         query_params = construct_query_params_from_dict(opts.model_dump())
     else:
         query_params = None
-    response = await httpx_async_client.get(API_URL_V1_Images, params=query_params)
+    response = await async_httpx_client.get(API_URL_V1_Images, params=query_params)
     result = response_check_for_multi_results(response, Response_Images)
     return result
 
@@ -141,19 +141,19 @@ def models(
     return result
 
 async def async_models(
-        httpx_async_client:httpx.AsyncClient,
+        async_httpx_client:httpx.AsyncClient,
         opts: Models_API_Opts | None = None
 ) -> Response_Models:
     if (opts):
         if (opts.favorites or opts.hidden):
-            if not (httpx_async_client.headers):
+            if not (async_httpx_client.headers):
                 raise ValueError("If the \'favorites\' and the \'hidden\' params were set, The api_key must be provided while initialize CivitaiAPI class.")
             
     if opts:
         query_params = construct_query_params_from_dict(opts.model_dump())
     else:
         query_params = None
-    response = await httpx_async_client.get(API_URL_V1_Models, params=query_params)
+    response = await async_httpx_client.get(API_URL_V1_Models, params=query_params)
     result = response_check_for_multi_results(response, Response_Models)
     return result
 
@@ -166,10 +166,10 @@ def get_model_by_id(
     return result
 
 async def async_get_model_by_id(
-        httpx_async_client:httpx.AsyncClient,
+        async_httpx_client:httpx.AsyncClient,
         modelId: int
 ) -> Response_Model_ById:
-    response = await httpx_async_client.get(urljoin(API_URL_V1_Model_By_Id, str(modelId)))
+    response = await async_httpx_client.get(urljoin(API_URL_V1_Model_By_Id, str(modelId)))
     result = response_check_for_single_result(response, Response_Model_ById)
     return result
 
@@ -182,10 +182,10 @@ def get_model_by_versionId(
     return result
 
 async def async_get_model_by_versionId(
-        httpx_async_client:httpx.AsyncClient,
+        async_httpx_client:httpx.AsyncClient,
         modelVersionId: int
 ) -> Response_Models_modelVersion:
-    response = await httpx_async_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
+    response = await async_httpx_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
     result = response_check_for_single_result(response, Response_Models_modelVersion)
     return result
 
@@ -198,10 +198,10 @@ def get_model_by_hash(
     return result
 
 async def async_get_model_by_hash(
-        httpx_async_client:httpx.AsyncClient,
+        async_httpx_client:httpx.AsyncClient,
         hash: str
 ) -> Response_Models_modelVersion:
-    response = await httpx_async_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
+    response = await async_httpx_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
     result = response_check_for_single_result(response, Response_Models_modelVersion)
     return result
 
@@ -218,13 +218,13 @@ def tags(
     return result
 
 async def async_tags(
-        httpx_async_client:httpx.AsyncClient,
+        async_httpx_client:httpx.AsyncClient,
         opts: Tags_API_Opts | None = None
 ) -> Response_Tags:
     if opts:
         query_params = construct_query_params_from_dict(opts.model_dump())
     else:
         query_params = None
-    response = await httpx_async_client.get(API_URL_Tags, params=query_params)
+    response = await async_httpx_client.get(API_URL_Tags, params=query_params)
     result = response_check_for_multi_results(response, Response_Tags)
     return result
