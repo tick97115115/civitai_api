@@ -49,16 +49,15 @@ def response_check_for_multi_results(response: httpx.Response, response_type: Ty
     if hasattr(obj, "error"): # notice that for those api endpoints that return a single result, the error message is different
         raise QueryParamsError(response.text)
     if hasattr(obj, "message"):
-        raise ConnectionAbortedError(response.text) # Server connection limitation reached
-    else:
-        return response_type(**obj)
+        raise ReachRequestLimitationError(response.text) # Server connection limitation reached
+    return response_type(**obj)
 
 def response_check_for_single_result(response: httpx.Response, response_type: Type[T]) -> T:
     obj = response.json()
     if hasattr(obj, "error"): # only no result matches will return error msg.
-        FileNotFoundError(response.text)
+        raise LoraNotExistsError(response.text)
     if hasattr(obj, "message"):
-        ConnectionAbortedError(response.text)
+        raise ReachRequestLimitationError(response.text)
     return response_type(**obj)
 
 def construct_query_params_from_dict(params: Dict[str, List[Any]]):
