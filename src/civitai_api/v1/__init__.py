@@ -19,11 +19,29 @@ API_URL_ModelVersion_By_Hash = urljoin(API_URL_V1, "model-versions/by-hash/") # 
 API_URL_Tags = urljoin(API_URL_V1, "tags") # https://civitai.com/api/v1/tags
 
 class QueryParamsError(Exception):
-    def __init__(self, response_json: str):
+    def __init__(self, response_json: str, *args):
+        super().__init__(*args)
         self.response_json = response_json
 
     def __str__(self):
         return f"{self.response_json}"
+
+class LoraNotExistsError(Exception):
+    def __init__(self, response_json: str, *args):
+        super().__init__(*args)
+        self.response_json = response_json
+    
+    def __str__(self):
+        return f"{self.response_json}"
+
+class ReachRequestLimitationError(Exception):
+    def __init__(self, response_json: str, *args):
+        super().__init__(*args)
+        self.response_json = response_json
+
+    def __str__(self):
+        return f"{self.response_json}"
+
 T = TypeVar('T')
 
 def response_check_for_multi_results(response: httpx.Response, response_type: Type[T]) -> T:
@@ -31,16 +49,16 @@ def response_check_for_multi_results(response: httpx.Response, response_type: Ty
     if hasattr(obj, "error"): # notice that for those api endpoints that return a single result, the error message is different
         raise QueryParamsError(response.text)
     if hasattr(obj, "message"):
-        raise ConnectionAbortedError(obj) # Server connection limitation reached
+        raise ConnectionAbortedError(response.text) # Server connection limitation reached
     else:
         return response_type(**obj)
-    
+
 def response_check_for_single_result(response: httpx.Response, response_type: Type[T]) -> T:
     obj = response.json()
     if hasattr(obj, "error"): # only no result matches will return error msg.
-        FileNotFoundError(obj)
+        FileNotFoundError(response.text)
     if hasattr(obj, "message"):
-        ConnectionAbortedError(obj)
+        ConnectionAbortedError(response.text)
     return response_type(**obj)
 
 def construct_query_params_from_dict(params: Dict[str, List[Any]]):

@@ -1,5 +1,5 @@
 from .images import Period as Period
-from _typeshed import Incomplete
+from _typeshed import Incomplete as Incomplete
 from enum import StrEnum
 from pydantic import BaseModel, StrictBool as StrictBool, StrictInt as StrictInt
 from typing import Annotated, Any

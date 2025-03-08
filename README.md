@@ -120,3 +120,18 @@ from civitai_api.v1.models.images import NsfwLevel
 opts: Images_API_Opts = Images_API_Opts(limit=[1], nsfw=[NsfwLevel.X], postId=[11059742]) 
 # Do This: nsfw=[NsfwLevel.X]
 ```
+
+### 4. Exception handling
+
+There are 3 types of Exception you should care of
+
+1. QueryParamsError
+    - only for the endpoints which could return multiple results.
+2. FileNotFoundError
+    - only for the endpoints which could return single results.
+3. ConnectionAbortedError
+    - every endpoint could trigger this Exception when the number of requests reach Civitai server's limitation.
+
+```python
+
+```
