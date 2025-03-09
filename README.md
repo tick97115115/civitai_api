@@ -28,4 +28,6 @@ There are 3 types of Exception you should care of
 ## Attention
 
 1. you could only get model's availability from endpoint models or modelId endpoints!
+    - some of the models have an EarlyAccess duration at the first time they get published.
 2. Trainned Prompts could only get from VersionId or Hash endpoints!
+
