@@ -3,7 +3,7 @@ import httpx
 import os
 pytestmark = pytest.mark.anyio
 
-from civitai_api.v1 import creators, async_creators, images, \
+from src.civitai_api.v1 import creators, async_creators, images, \
     async_images, models, async_models, get_model_by_id, async_get_model_by_id, \
     get_model_by_versionId, async_get_model_by_versionId, get_model_by_hash, \
     async_get_model_by_hash, tags, async_tags
@@ -11,66 +11,66 @@ from dotenv import load_dotenv
 load_dotenv()
 proxy = os.environ.get('PROXY', None)
 api_key = os.environ.get('API_KEY', None)
-print(f"Proxy: {proxy}")
-print(f"API Key: {api_key}")
 
+# 1. Initialization httpx client at first
 @pytest.fixture
 def httpx_client():
-    with httpx.Client(headers={"Authorization": f"Bearer {api_key}"}, proxy = proxy) as client:
+    with httpx.Client(proxy = proxy) as client:
         yield client
 
 @pytest.fixture
 async def httpx_async_client():
-    async with httpx.AsyncClient(headers={"Authorization": f"Bearer {api_key}"}, proxy = proxy) as async_client:
+    async with httpx.AsyncClient(proxy = proxy) as async_client:
         yield async_client
 
+# 2. prepare query paramters
 @pytest.fixture
 def creators_request_queru_params():
-    from civitai_api.v1.models.creators import Creators_API_Opts
+    from src.civitai_api.v1.models.creators import Creators_API_Opts
     return Creators_API_Opts(
-        limit=[20], 
-        page=[1], 
-        query=["Elesico"]
+        limit=20, 
+        page=1, 
+        query="Elesico"
         )
 
 @pytest.fixture
 def images_request_query_params():
-    from civitai_api.v1.models.images import NsfwLevel, Sort, Period, Images_API_Opts
+    from src.civitai_api.v1.models.images import NsfwLevel, Sort, Period, Images_API_Opts
     return Images_API_Opts(
-        limit=[2], 
-        postId=[9178972], 
-        modelId=[949620], 
-        modelVersionId=[1063193], 
-        username=["Elesico"], 
+        limit=2, 
+        postId=9178972, 
+        modelId=949620, 
+        modelVersionId=1063193, 
+        username="Elesico", 
         nsfw=[NsfwLevel.X], 
-        sort=[Sort.Newest], 
-        period=[Period.AllTime], 
-        page=[2], 
-        total=[api_key]
+        sort=Sort.Newest, 
+        period=Period.AllTime,
+        page=2
         )
 
 @pytest.fixture
 def models_request_query_params():
-    from civitai_api.v1.models.models import Models_API_Opts, Sort, Period, Response_Models_Type, AllowCommercialUse
+    from src.civitai_api.v1.models.models import Models_API_Opts, Sort, Period, Response_Models_Type, AllowCommercialUse
     return Models_API_Opts(
-        limit=[20],
-        page=[1],
-        query=["VSK-94 | Girls' Frontline"],
-        tag=["girls_frontline"],
-        username=["LeonDoesntDraw"],
+        limit=20,
+        page=1,
+        query="VSK-94 | Girls' Frontline",
+        tag="girls_frontline",
+        username="LeonDoesntDraw",
         types=[Response_Models_Type.LORA],
-        sort=[Sort.Newest],
-        period=[Period.AllTime],
-        rating=[5],
-        favorites=[False],
-        hidden=[False],
-        primaryFileOnly=[False],
-        # allowNoCredit=[True],
-        # allowDerivatives=[True],
-        allowDifferentLicenses=[True],
+        sort=Sort.Newest,
+        period=Period.AllTime,
+        rating=5,
+        favorites=False,
+        hidden=False,
+        primaryFileOnly=False,
+        # allowNoCredit=True,
+        # allowDerivatives=True,
+        allowDifferentLicenses=True,
         allowCommercialUse=[AllowCommercialUse.Image, AllowCommercialUse.Rent, AllowCommercialUse.Sell],
-        nsfw=[True],
-        supportsGeneration=[True],
+        nsfw=True,
+        supportsGeneration=True,
+        token=api_key
     )
 
 @pytest.fixture
@@ -87,27 +87,24 @@ def model_hash():
 
 @pytest.fixture
 def tags_request_query_params():
-    from civitai_api.v1.models.tags import Tags_API_Opts
+    from src.civitai_api.v1.models.tags import Tags_API_Opts
     return Tags_API_Opts(
-        limit=[20],
-        page=[1],
-        query=["girls_frontline"]
+        limit=20,
+        page=1,
+        query="girls_frontline"
         )
 
+# 3. make queries
 class TestAPI_V1:
     def test_creators(self, httpx_client, creators_request_queru_params):
-        query_params = creators_request_queru_params
-        response = creators(httpx_client)
-        for item in response.items:
-            if item.username == "Elesico":
-                assert item.link == "https://civitai.com/api/v1/models?username=Elesico"
+        response = creators(httpx_client, creators_request_queru_params)
+        assert response.metadata.totalItems == 1
+        assert response.items[0].username == "Elesico"
     
     async def test_async_creators(self, httpx_async_client, creators_request_queru_params):
-        query_params = creators_request_queru_params
-        response = await async_creators(httpx_async_client)
-        for item in response.items:
-            if item.username == "Elesico":
-                assert item.link == "https://civitai.com/api/v1/models?username=Elesico"
+        response = await async_creators(httpx_async_client, creators_request_queru_params)
+        assert response.metadata.totalItems == 1
+        assert response.items[0].username == "Elesico"
 
     def test_images(self, httpx_client, images_request_query_params):
         response = images(httpx_client, images_request_query_params)
@@ -167,3 +164,13 @@ async def test_async_tags(httpx_async_client, tags_request_query_params):
     response = await async_tags(httpx_async_client, tags_request_query_params)
     assert len(response.items) > 0
     assert response.metadata.pageSize == 20
+
+def test_httpx_query_params():
+    from src.civitai_api.v1.models.models import Response_Models
+    non_nsfw_result = httpx.get(url="https://civitai.com/api/v1/models",params={"nsfw":False, "username":"kind5516", "query":"channel_style"}).json()
+    non_nsfw_result = Response_Models(**non_nsfw_result)
+    assert len(non_nsfw_result.items) == 0
+
+    nsfw_result = httpx.get(url="https://civitai.com/api/v1/models", params={"nsfw":True, "username":"kind5516", "query":"channel_style"}).json()
+    nsfw_result = Response_Models(**nsfw_result)
+    assert nsfw_result.items[0].id == 1318764

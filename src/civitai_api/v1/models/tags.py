@@ -18,6 +18,6 @@ class Response_Tags(BaseModel):
     metadata: Response_Tags_Metadata
 
 class Tags_API_Opts(BaseModel):
-    limit: List[StrictInt] # The number of results to be returned per page. This can be a number between 1 and 200. By default, each page will return 20 results. If set to 0, it'll return all the tags
-    page: List[StrictInt] # The page from which to start fetching tags
-    query: List[str] # Search query to filter tags by name
+    limit: StrictInt # The number of results to be returned per page. This can be a number between 1 and 200. By default, each page will return 20 results. If set to 0, it'll return all the tags
+    page: StrictInt # The page from which to start fetching tags
+    query: str # Search query to filter tags by name

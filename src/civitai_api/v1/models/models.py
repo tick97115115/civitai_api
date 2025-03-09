@@ -25,6 +25,18 @@ class Response_Models_Mode(StrEnum):
     Archived = "Archived"
     TakenDown = "TakenDown"
 
+class AllowCommercialUse(StrEnum):
+    Image = "Image"
+    RentCivit = "RentCivit"
+    Rent = "Rent"
+    Sell = "Sell"
+    None_ = "None"
+
+class Sort(StrEnum):
+    Highest_Rated = 'Highest Rated'
+    Most_Downloaded = 'Most Downloaded'
+    Newest = 'Newest'
+    
 class Response_Models_Creator(BaseModel):
     username: str 	# The name of the creator
     image: str | None 	# The url of the creators avatar
@@ -127,11 +139,16 @@ class Response_Models_modelVersions_Model(BaseModel):
     nsfw: bool # Whether the model is NSFW or not
     poi: bool # Whether the model is a Point of Interest model
 
+class Response_Models_modelVersion_Availability(StrEnum):
+    EarlyAccess = "EarlyAccess"
+    Public = "Public"
+
 class Response_Models_modelVersion(BaseModel):
     id: int	# The identifier for the model version
     modelId: int | None = None # The model id
     baseModel: str # The base model of the model
     name: str # The name of the model version
+    availability: None | Response_Models_modelVersion_Availability = None # Be careful! this property only occur in the result of modelId or models endpoint, not in VersionId nor Hash endpoint.
     earlyAccessEndsAt: str | None = None # (ISO 8601) The date in which the early access ends
     earlyAccessConfig: Dict[str, Any] | None = None # The early access configuration
     uploadType: str | None = None # The upload type of the model version
@@ -141,7 +158,6 @@ class Response_Models_modelVersion(BaseModel):
     status: str | None = None # The status of the model version
     publishedAt: str # (ISO 8601) The date in which the version was published, Only available for the model version query endpoint
     downloadUrl: str 	# The download url to get the model file for this specific version
-    trainedWords: List[str] | None = None 	# The words used to trigger the model
     files: List[Response_Models_modelVersions_File]
     images: List[Response_Models_modelVersions_Image] | None = None
     stats: Response_Models_modelVersions_Stats
@@ -158,10 +174,17 @@ class Response_Model(BaseModel):
     id: int 	# The identifier for the model
     name: str 	# The name of the model
     description: str 	# The description of the model (HTML)
+    allowNoCredit: bool
+    allowCommercialUse: List[AllowCommercialUse]
+    allowDerivatives: bool
+    allowDifferentLicense: bool
     type: Response_Models_Type | None = None # The model type
+    minor: bool
+    poi: bool
     nsfw: bool # Whether the model is NSFW or not
+    nsfwLevel: int
     tags: List[str] # The tags associated with the model
-    mode: Response_Models_Mode | None = None 	# The mode in which the model is currently on. If Archived, files field will be empty. If TakenDown, images field will be empty
+    # mode: Response_Models_Mode | None = None 	# The mode in which the model is currently on. If Archived, files field will be empty. If TakenDown, images field will be empty
     creator: Response_Models_Creator | None = None 	# The creator of the model
     stats: Response_Models_Stats
     modelVersions: List[Response_Models_modelVersion]
@@ -170,35 +193,23 @@ class Response_Models(BaseModel):
     items: List[Response_Model]
     metadata: Response_Models_Metadata
 
-class Sort(StrEnum):
-    Highest_Rated = 'Highest Rated'
-    Most_Downloaded = 'Most Downloaded'
-    Newest = 'Newest'
-    
-class AllowCommercialUse(StrEnum):
-    None_ = 'None'
-    Image = 'Image'
-    Rent = 'Rent'
-    Sell = 'Sell'
-
-LimitInt = Annotated[int, Field(strict=True, ge=1, le=100)]
-Limit = Annotated[List[LimitInt], Len(1, 1)]
 class Models_API_Opts(BaseModel):
-    limit: 	None | Limit = None 	# The number of results to be returned per page. This can be a number between 1 and 100. By default, each page will return 100 results
-    page: 	None | Annotated[List[StrictInt], Len(1,1)] = None 	# The page from which to start fetching models
-    query: 	None | Annotated[List[str], Len(1,1)] = None 	# Search query to filter models by name
-    tag: 	None | Annotated[List[str], Len(1,1)] = None 	# Search query to filter models by tag
-    username: 	None | Annotated[List[str], Len(1,1)] = None 	# Search query to filter models by user
+    limit: 	None | StrictInt = None 	# The number of results to be returned per page. This can be a number between 1 and 100. By default, each page will return 100 results
+    page: 	None | StrictInt = None 	# The page from which to start fetching models
+    query: 	None | str = None 	# Search query to filter models by name
+    tag: 	None | str = None 	# Search query to filter models by tag
+    username: 	None | str = None 	# Search query to filter models by user
     types: List[Response_Models_Type] | None = None 	# The type of model you want to filter with. If none is specified, it will return all types
-    sort: 	None | Annotated[List[Sort], Len(1,1)] = None 	# The order in which you wish to sort the results
-    period: None | Annotated[List[Period], Len(1,1)] = None 	# The time frame in which the models will be sorted
-    # rating: 	Optional[int] 	# (Deprecated) The rating you wish to filter the models with. If none is specified, it will return models with any rating
-    favorites: None | Annotated[List[StrictBool], Len(1,1)] = None 	# (AUTHED) Filter to favorites of the authenticated user (this requires an API token or session cookie)
-    hidden: None | Annotated[List[StrictBool], Len(1,1)] = None 	# (AUTHED) Filter to hidden models of the authenticated user (this requires an API token or session cookie)
-    primaryFileOnly: None | Annotated[List[StrictBool], Len(1,1)] = None 	# Only include the primary file for each model (This will use your preferred format options if you use an API token or session cookie)
-    allowNoCredit: None | Annotated[List[StrictBool], Len(1,1)] = None 	# Filter to models that require or don't require crediting the creator
-    allowDerivatives: None | Annotated[List[StrictBool], Len(1,1)] = None 	# Filter to models that allow or don't allow creating derivatives
-    allowDifferentLicenses: None | Annotated[List[StrictBool], Len(1,1)] = None # Filter to models that allow or don't allow derivatives to have a different license
+    sort: 	None | Sort = None 	# The order in which you wish to sort the results
+    period: None | Period = None 	# The time frame in which the models will be sorted
+    rating: None | StrictInt = None 	# The rating you wish to filter the models with. If none is specified, it will return models with any rating
+    favorites: None | StrictBool = None 	# (AUTHED) Filter to favorites of the authenticated user (this requires an API token or session cookie)
+    hidden: None | StrictBool = None 	# (AUTHED) Filter to hidden models of the authenticated user (this requires an API token or session cookie)
+    primaryFileOnly: None | StrictBool = None 	# Only include the primary file for each model (This will use your preferred format options if you use an API token or session cookie)
+    allowNoCredit: None | StrictBool = None 	# Filter to models that require or don't require crediting the creator
+    allowDerivatives: None | StrictBool = None 	# Filter to models that allow or don't allow creating derivatives
+    allowDifferentLicenses: None | StrictBool = None # Filter to models that allow or don't allow derivatives to have a different license
     allowCommercialUse: List[AllowCommercialUse] | None = None 	# Filter to models based on their commercial permissions
-    nsfw: None | Annotated[List[StrictBool], Len(1,1)] = None # If false, will return safer images and hide models that don't have safe images
-    supportsGeneration: None | Annotated[List[StrictBool], Len(1,1)] = None 	# If true, will return models that support generation
+    nsfw: None | StrictBool = None # If false, will return safer images and hide models that don't have safe images
+    supportsGeneration: None | StrictBool = None 	# If true, will return models that support generation
+    token: str # required for search models

@@ -110,16 +110,13 @@ class Response_Images(BaseModel):
     items: List[Response_Images_Item]
     metadata: Response_Images_Metadata
 
-LimitInt = Annotated[int, Field(strict=True, ge=1, le=200)]
-Limit = Annotated[List[LimitInt], Len(1, 1)]
-
 class Images_API_Opts(BaseModel):
-    limit: None | Limit = None # The number of results to be returned per page. This can be a number between 0 and 200. By default, each page will return 100 results.
-    postId: None | Annotated[List[StrictInt], Len(1,1)] = None # The ID of a post to get images from
-    modelId: None | Annotated[List[StrictInt], Len(1,1)] = None # The ID of a model to get images from (model gallery)
-    modelVersionId: None | Annotated[List[StrictInt], Len(1,1)] = None # The ID of a model version to get images from (model gallery filtered to version)
-    username: None | Annotated[List[str], Len(1,1)] = None # Filter to images from a specific user
+    limit: None | StrictInt = None # The number of results to be returned per page. This can be a number between 0 and 200. By default, each page will return 100 results.
+    postId: None | StrictInt = None # The ID of a post to get images from
+    modelId: None | StrictInt = None # The ID of a model to get images from (model gallery)
+    modelVersionId: None | StrictInt = None # The ID of a model version to get images from (model gallery filtered to version)
+    username: None | str = None # Filter to images from a specific user
     nsfw: None | bool | List[NsfwLevel] = None # Filter to images that contain mature content flags or not (undefined returns all)
-    sort: None | Annotated[List[Sort], Len(1,1)] = None # The order in which you wish to sort the results
-    period: None | Annotated[List[Period], Len(1,1)] = None # The time frame in which the images will be sorted
-    page: None | Annotated[List[StrictInt], Len(1,1)] = None # The page from which to start fetching creators
+    sort: None | Sort = None # The order in which you wish to sort the results
+    period: None | Period = None # The time frame in which the images will be sorted
+    page: None | StrictInt = None # The page from which to start fetching creators

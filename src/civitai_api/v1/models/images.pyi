@@ -1,7 +1,5 @@
-from _typeshed import Incomplete as Incomplete
 from enum import StrEnum
 from pydantic import BaseModel, StrictInt as StrictInt
-from typing import Annotated
 
 class NsfwLevel(StrEnum):
     None_ = 'None'
@@ -96,16 +94,13 @@ class Response_Images(BaseModel):
     items: list[Response_Images_Item]
     metadata: Response_Images_Metadata
 
-LimitInt: Incomplete
-Limit: Incomplete
-
 class Images_API_Opts(BaseModel):
-    limit: None | Limit
-    postId: None | Annotated[list[StrictInt], None]
-    modelId: None | Annotated[list[StrictInt], None]
-    modelVersionId: None | Annotated[list[StrictInt], None]
-    username: None | Annotated[list[str], None]
+    limit: None | StrictInt
+    postId: None | StrictInt
+    modelId: None | StrictInt
+    modelVersionId: None | StrictInt
+    username: None | str
     nsfw: None | bool | list[NsfwLevel]
-    sort: None | Annotated[list[Sort], None]
-    period: None | Annotated[list[Period], None]
-    page: None | Annotated[list[StrictInt], None]
+    sort: None | Sort
+    period: None | Period
+    page: None | StrictInt
