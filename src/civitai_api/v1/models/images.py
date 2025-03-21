@@ -2,24 +2,7 @@ from enum import StrEnum
 from typing import Annotated, Any, Dict, List, Optional
 from annotated_types import Len
 from pydantic import BaseModel, Field, StrictInt
-
-class NsfwLevel(StrEnum):
-    None_ = 'None'
-    Soft = 'Soft'
-    Mature = 'Mature'
-    X = 'X'
-
-class Sort(StrEnum):
-    Most_Reactions = "Most Reactions"
-    Most_Comments = "Most Comments"
-    Newest = "Newest"
-
-class Period(StrEnum):
-    AllTime = "AllTime"
-    Day = "Day"
-    Week = "Week"
-    Month = "Month"
-    Year = "Year"
+from .base.misc import Sort, Period, NsfwLevel
 
 class Response_Images_Stats(BaseModel):
     cryCount: int # The number of cry reactions
@@ -36,13 +19,13 @@ class Response_Images_Meta_Resources(BaseModel):
     hash: str
     name: str
     type: Response_Images_Meta_CivitaiResources_Type
-    weight: float | None = None
+    # weight: float | None = None
 
 class Response_Images_Meta_CivitaiResources(BaseModel):
     type: Response_Images_Meta_CivitaiResources_Type
-    weight: Optional[float] = None
+    # weight: Optional[float] = None
     modelVersionId: int
-    modelVersionName: str | None = None
+    # modelVersionName: str | None = None
 
 class Response_Images_Meta(BaseModel): # this field is a non-structured object that contains additional information about the image, the meta structure will be different for each webui
     Size: str
@@ -102,9 +85,9 @@ class Response_Images_Item(BaseModel):
     createdAt: str # (ISO 8601 format) The date the image was posted
     postId: int # The ID of the post the image belongs to
     stats: Response_Images_Stats
-    meta: Dict | None = None # this field is a non-structured object that contains additional information about the image, the meta structure will be different for each webui
-    username: Optional[str] = None # The username of the creator
-    baseModel: Optional[str] = None # The base model of the image
+    # meta: Dict | None = None # this field is a non-structured object that contains additional information about the image, the meta structure will be different for each webui
+    # username: Optional[str] = None # The username of the creator
+    # baseModel: Optional[str] = None # The base model of the image
 
 class Response_Images(BaseModel):
     items: List[Response_Images_Item]

@@ -1,12 +1,14 @@
 import httpx
 from urllib.parse import urljoin
 from typing import Any, Dict, Type, TypeVar
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictInt
 
-from .models.models import Models_API_Opts, Response_Models, Response_Model, Response_Models_modelVersion
-from .models.creators import Creators_API_Opts, Response_Creaters
+from .models.base.misc import Model_Types, Sort, Period, AllowCommercialUse, NsfwLevel
+from .models.models_endpoint import Models_API_Opts, Models_Response
+from .models.modelId_endpoint import ModelId_Response, ModelId_ModelVersion
+from .models.creators_endpoint import Creators_API_Opts, Response_Creaters
 from .models.images import Images_API_Opts, Response_Images
-from .models.tags import Tags_API_Opts, Response_Tags
+from .models.tags_endpoint import Tags_API_Opts, Response_Tags
 # API endpoints references: https://github.com/civitai/civitai/wiki/REST-API-Reference
 
 API_URL_V1 = "https://civitai.com/api/v1/"
@@ -63,7 +65,7 @@ def response_check_for_single_result(response: httpx.Response, response_type: Ty
 def construct_query_params_from_dict(params: Dict[str, Any]):
     query_params: Dict[str, Any] = {}
     for k,v in params.items():
-        if params[k] != None:
+        if v != None:
             query_params[k] = v
     return query_params
 
@@ -121,7 +123,7 @@ async def async_images(
 def models(
         httpx_client:httpx.Client,
         opts: Models_API_Opts | None = None
-) -> Response_Models:
+) -> Models_Response:
     if (opts):
         if (opts.favorites or opts.hidden):
             if not (httpx_client.headers):
@@ -132,13 +134,13 @@ def models(
     else:
         query_params = None
     response = httpx_client.get(API_URL_V1_Models, params=query_params)
-    result = response_check_for_multi_results(response, Response_Models)
+    result = response_check_for_multi_results(response, Models_Response)
     return result
 
 async def async_models(
         async_httpx_client:httpx.AsyncClient,
         opts: Models_API_Opts | None = None
-) -> Response_Models:
+) -> Models_Response:
     if (opts):
         if (opts.favorites or opts.hidden):
             if not (async_httpx_client.headers):
@@ -149,55 +151,55 @@ async def async_models(
     else:
         query_params = None
     response = await async_httpx_client.get(API_URL_V1_Models, params=query_params)
-    result = response_check_for_multi_results(response, Response_Models)
+    result = response_check_for_multi_results(response, Models_Response)
     return result
 
 def get_model_by_id(
         httpx_client:httpx.Client,
         modelId: int
-) -> Response_Model:
+) -> ModelId_Response:
     response = httpx_client.get(urljoin(API_URL_V1_Model_By_Id, str(modelId)))
-    result = response_check_for_single_result(response, Response_Model)
+    result = response_check_for_single_result(response, ModelId_Response)
     return result
 
 async def async_get_model_by_id(
         async_httpx_client:httpx.AsyncClient,
         modelId: int
-) -> Response_Model:
+) -> ModelId_Response:
     response = await async_httpx_client.get(urljoin(API_URL_V1_Model_By_Id, str(modelId)))
-    result = response_check_for_single_result(response, Response_Model)
+    result = response_check_for_single_result(response, ModelId_Response)
     return result
 
 def get_model_by_versionId(
         httpx_client:httpx.Client,
         modelVersionId: int
-) -> Response_Models_modelVersion:
+) -> ModelId_ModelVersion:
     response = httpx_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
-    result = response_check_for_single_result(response, Response_Models_modelVersion)
+    result = response_check_for_single_result(response, ModelId_ModelVersion)
     return result
 
 async def async_get_model_by_versionId(
         async_httpx_client:httpx.AsyncClient,
         modelVersionId: int
-) -> Response_Models_modelVersion:
+) -> ModelId_ModelVersion:
     response = await async_httpx_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
-    result = response_check_for_single_result(response, Response_Models_modelVersion)
+    result = response_check_for_single_result(response, ModelId_ModelVersion)
     return result
 
 def get_model_by_hash(
         httpx_client:httpx.Client,
         hash: str
-) -> Response_Models_modelVersion:
+) -> ModelId_ModelVersion:
     response = httpx_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
-    result = response_check_for_single_result(response, Response_Models_modelVersion)
+    result = response_check_for_single_result(response, ModelId_ModelVersion)
     return result
 
 async def async_get_model_by_hash(
         async_httpx_client:httpx.AsyncClient,
         hash: str
-) -> Response_Models_modelVersion:
+) -> ModelId_ModelVersion:
     response = await async_httpx_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
-    result = response_check_for_single_result(response, Response_Models_modelVersion)
+    result = response_check_for_single_result(response, ModelId_ModelVersion)
     return result
 
 def tags(
@@ -225,17 +227,56 @@ async def async_tags(
     return result
 
 class CiviClient:
-    def __init__(self, api_key: str, httpx_client: httpx.Client = httpx.Client(), async_httpx_client: httpx.AsyncClient = httpx.AsyncClient()):
+    def __init__(
+            self, 
+            api_key: str, 
+            httpx_client: httpx.Client = httpx.Client(), 
+            async_httpx_client: httpx.AsyncClient = httpx.AsyncClient()
+            ):
         self.httpx_client = httpx_client
         self.async_httpx_client = async_httpx_client
 
-    def creators(self, opts: Creators_API_Opts):
+    def creators(
+            self, 
+            limit: None | StrictInt = None, 
+            page: None | StrictInt = None, 
+            query: None | str = None
+            ):
+        opts = Creators_API_Opts(limit=limit, page=page, query=query)
         return creators(self.httpx_client, opts)
 
-    async def async_creators(self, opts: Creators_API_Opts):
+    async def async_creators(
+            self, 
+            limit: None | StrictInt = None, 
+            page: None | StrictInt = None, 
+            query: None | str = None
+            ):
+        opts = Creators_API_Opts(limit=limit, page=page, query=query)
         return await async_creators(self.async_httpx_client, opts)
 
-    def images(self, opts: Images_API_Opts):
+    def images(
+            self, 
+            limit: None | StrictInt = None, 
+            postId: None | StrictInt = None, 
+            modelId: None | StrictInt = None, 
+            modelVersionId: None | StrictInt = None, 
+            username: None | str = None, 
+            nsfw: None | bool | list[NsfwLevel] = None, 
+            sort: None | Sort = None, 
+            period: None | Period = None, 
+            page: None | StrictInt = None
+            ):
+        opts: Images_API_Opts = Images_API_Opts(
+            limit=limit,
+            postId=postId,
+            modelId=modelId,
+            modelVersionId=modelVersionId,
+            username=username,
+            nsfw=nsfw,
+            sort=sort,
+            period=period,
+            page=page
+        )
         return images(self.httpx_client, opts)
 
     async def async_images(self, opts: Images_API_Opts):

@@ -1,11 +1,10 @@
-from typing import Annotated, List
-from annotated_types import Len
+from typing import List
 from pydantic import BaseModel, Field, StrictInt
 
 class Response_Creaters_Item(BaseModel):
     username: str
     modelCount: int | None = None # if the creator have no models, this field will not exist in the response
-    link: str
+    link: str | None = None
     image: str | None = None # URL to the creator's avatar
 
 class Response_Creaters_Metadata(BaseModel):

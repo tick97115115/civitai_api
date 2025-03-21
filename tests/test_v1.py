@@ -26,7 +26,7 @@ async def httpx_async_client():
 # 2. prepare query paramters
 @pytest.fixture
 def creators_request_queru_params():
-    from src.civitai_api.v1.models.creators import Creators_API_Opts
+    from src.civitai_api.v1.models.creators_endpoint import Creators_API_Opts
     return Creators_API_Opts(
         limit=20, 
         page=1, 
@@ -50,14 +50,14 @@ def images_request_query_params():
 
 @pytest.fixture
 def models_request_query_params():
-    from src.civitai_api.v1.models.models import Models_API_Opts, Sort, Period, Response_Models_Type, AllowCommercialUse
+    from src.civitai_api.v1.models.models_endpoint import Models_API_Opts, Sort, Period, Model_Types, AllowCommercialUse
     return Models_API_Opts(
         limit=20,
         page=1,
         query="VSK-94 | Girls' Frontline",
         tag="girls_frontline",
         username="LeonDoesntDraw",
-        types=[Response_Models_Type.LORA],
+        types=[Model_Types.LORA],
         sort=Sort.Newest,
         period=Period.AllTime,
         rating=5,
@@ -87,7 +87,7 @@ def model_hash():
 
 @pytest.fixture
 def tags_request_query_params():
-    from src.civitai_api.v1.models.tags import Tags_API_Opts
+    from civitai_api.v1.models.tags_endpoint import Tags_API_Opts
     return Tags_API_Opts(
         limit=20,
         page=1,
@@ -166,11 +166,11 @@ async def test_async_tags(httpx_async_client, tags_request_query_params):
     assert response.metadata.pageSize == 20
 
 def test_httpx_query_params():
-    from src.civitai_api.v1.models.models import Response_Models
+    from src.civitai_api.v1.models.models_endpoint import Models_Response
     non_nsfw_result = httpx.get(url="https://civitai.com/api/v1/models",params={"nsfw":False, "username":"kind5516", "query":"channel_style"}).json()
-    non_nsfw_result = Response_Models(**non_nsfw_result)
+    non_nsfw_result = Models_Response(**non_nsfw_result)
     assert len(non_nsfw_result.items) == 0
 
     nsfw_result = httpx.get(url="https://civitai.com/api/v1/models", params={"nsfw":True, "username":"kind5516", "query":"channel_style"}).json()
-    nsfw_result = Response_Models(**nsfw_result)
+    nsfw_result = Models_Response(**nsfw_result)
     assert nsfw_result.items[0].id == 1318764
