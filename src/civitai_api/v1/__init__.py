@@ -65,24 +65,12 @@ def response_check_for_single_result(response: httpx.Response, response_type: Ty
         raise ReachRequestLimitationError(response.text)
     return response_type(**obj)
 
-def construct_query_params_from_dict(params: Dict[str, Any]):
-    query_params: Dict[str, Any] = {}
-    for k,v in params.items():
-        if v != None:
-            query_params[k] = v
-    return query_params
-
-def construct_query_params_from_model(model: BaseModel):
-    dictionary = model.model_dump()
-
-
-
 def creators(
         httpx_client:httpx.Client,
         opts: Creators_API_Opts | None = None
         ) -> Response_Creaters:
     if opts:
-        query_params = construct_query_params_from_dict(opts.model_dump())
+        query_params = opts.model_dump(exclude_none=True, exclude_defaults=True, exclude_unset=True)
     else:
         query_params = None
     response = httpx_client.get(API_URL_V1_Creators, params=query_params)
@@ -94,7 +82,7 @@ async def async_creators(
         opts: Creators_API_Opts | None = None
         ) -> Response_Creaters:
     if opts:
-        query_params = construct_query_params_from_dict(opts.model_dump())
+        query_params = opts.model_dump(exclude_none=True, exclude_defaults=True, exclude_unset=True)
     else:
         query_params = None
     response = await async_httpx_client.get(API_URL_V1_Creators, params=query_params)
@@ -106,7 +94,7 @@ def images(
         opts: Images_API_Opts | None = None
         ) -> Response_Images:
     if opts:
-        query_params = construct_query_params_from_dict(opts.model_dump())
+        query_params = opts.model_dump(exclude_none=True, exclude_defaults=True, exclude_unset=True)
     response = httpx_client.get(API_URL_V1_Images, params=query_params)
     result = response_check_for_multi_results(response, Response_Images)
     return result
@@ -116,7 +104,7 @@ async def async_images(
         opts: Images_API_Opts | None = None
 ) -> Response_Images:
     if opts:
-        query_params = construct_query_params_from_dict(opts.model_dump())
+        query_params = opts.model_dump(exclude_none=True, exclude_defaults=True, exclude_unset=True)
     else:
         query_params = None
     response = await async_httpx_client.get(API_URL_V1_Images, params=query_params)
@@ -133,7 +121,7 @@ def models(
                 raise ValueError("If the \'favorites\' and the \'hidden\' params were set, The api_key must be provided while initialize CivitaiAPI class.")
             
     if opts:
-        query_params = construct_query_params_from_dict(opts.model_dump())
+        query_params = opts.model_dump(exclude_none=True, exclude_defaults=True, exclude_unset=True)
     else:
         query_params = None
     response = httpx_client.get(API_URL_V1_Models, params=query_params)
@@ -150,7 +138,7 @@ async def async_models(
                 raise ValueError("If the \'favorites\' and the \'hidden\' params were set, The api_key must be provided while initialize CivitaiAPI class.")
             
     if opts:
-        query_params = construct_query_params_from_dict(opts.model_dump())
+        query_params = opts.model_dump(exclude_none=True, exclude_defaults=True, exclude_unset=True)
     else:
         query_params = None
     response = await async_httpx_client.get(API_URL_V1_Models, params=query_params)
@@ -211,7 +199,7 @@ def tags(
         opts: Tags_API_Opts | None = None
 ) -> Response_Tags:
     if opts:
-        query_params = construct_query_params_from_dict(opts.model_dump())
+        query_params = opts.model_dump(exclude_none=True, exclude_defaults=True, exclude_unset=True)
     else:
         query_params = None
     response = httpx_client.get(API_URL_Tags, params=query_params)
@@ -223,7 +211,7 @@ async def async_tags(
         opts: Tags_API_Opts | None = None
 ) -> Response_Tags:
     if opts:
-        query_params = construct_query_params_from_dict(opts.model_dump())
+        query_params = opts.model_dump(exclude_none=True, exclude_defaults=True, exclude_unset=True)
     else:
         query_params = None
     response = await async_httpx_client.get(API_URL_Tags, params=query_params)
