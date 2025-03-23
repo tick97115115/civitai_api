@@ -3,6 +3,7 @@ from urllib.parse import urljoin
 from typing import Any, Dict, Type, TypeVar
 from pydantic import BaseModel, StrictInt
 
+from .models.versionId_endpoint import modelVersion_endpoint_modelVersion
 from .models.base.misc import Model_Types, Sort, Period, AllowCommercialUse, NsfwLevel
 from .models.models_endpoint import Models_API_Opts, Models_Response
 from .models.modelId_endpoint import ModelId_Response, ModelId_ModelVersion
@@ -55,6 +56,8 @@ def response_check_for_multi_results(response: httpx.Response, response_type: Ty
     return response_type(**obj)
 
 def response_check_for_single_result(response: httpx.Response, response_type: Type[T]) -> T:
+    if response.status_code >= 299 or response.status_code < 200:
+        raise Exception(f"Error: {response.text}")
     obj = response.json()
     if hasattr(obj, "error"): # only no result matches will return error msg.
         raise LoraNotExistsError(response.text)
@@ -173,33 +176,34 @@ async def async_get_model_by_id(
 def get_model_by_versionId(
         httpx_client:httpx.Client,
         modelVersionId: int
-) -> ModelId_ModelVersion:
+) -> modelVersion_endpoint_modelVersion:
     response = httpx_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
-    result = response_check_for_single_result(response, ModelId_ModelVersion)
+    result = response_check_for_single_result(response, modelVersion_endpoint_modelVersion)
     return result
 
 async def async_get_model_by_versionId(
         async_httpx_client:httpx.AsyncClient,
         modelVersionId: int
-) -> ModelId_ModelVersion:
+) -> modelVersion_endpoint_modelVersion:
     response = await async_httpx_client.get(urljoin(API_URL_ModelVersion_By_VersionId, str(modelVersionId)))
-    result = response_check_for_single_result(response, ModelId_ModelVersion)
+    result = response_check_for_single_result(response, modelVersion_endpoint_modelVersion)
     return result
 
 def get_model_by_hash(
         httpx_client:httpx.Client,
         hash: str
-) -> ModelId_ModelVersion:
+) -> modelVersion_endpoint_modelVersion:
     response = httpx_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
-    result = response_check_for_single_result(response, ModelId_ModelVersion)
+    result = response_check_for_single_result(response, modelVersion_endpoint_modelVersion)
     return result
 
 async def async_get_model_by_hash(
         async_httpx_client:httpx.AsyncClient,
         hash: str
-) -> ModelId_ModelVersion:
-    response = await async_httpx_client.get(urljoin(API_URL_ModelVersion_By_Hash, hash))
-    result = response_check_for_single_result(response, ModelId_ModelVersion)
+) -> modelVersion_endpoint_modelVersion:
+    url = urljoin(API_URL_ModelVersion_By_Hash, hash)
+    response = await async_httpx_client.get(url=url)
+    result = response_check_for_single_result(response, modelVersion_endpoint_modelVersion)
     return result
 
 def tags(

@@ -87,7 +87,7 @@ def model_hash():
 
 @pytest.fixture
 def tags_request_query_params():
-    from civitai_api.v1.models.tags_endpoint import Tags_API_Opts
+    from src.civitai_api.v1.models.tags_endpoint import Tags_API_Opts
     return Tags_API_Opts(
         limit=20,
         page=1,

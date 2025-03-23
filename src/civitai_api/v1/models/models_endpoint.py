@@ -1,4 +1,4 @@
-from civitai_api.v1.models.base.misc import Model_Types, Sort, Period, AllowCommercialUse
+from .base.misc import Model_Types, Sort, Period, AllowCommercialUse
 from .modelId_endpoint import ModelId_Response
 from pydantic import BaseModel, StrictBool, StrictInt
 from typing import List
