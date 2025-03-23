@@ -1,7 +1,7 @@
 import httpx
 from urllib.parse import urljoin
-from typing import Any, Dict, Type, TypeVar
-from pydantic import BaseModel, StrictInt
+from typing import Any, Dict, List, Type, TypeVar
+from pydantic import BaseModel, StrictBool, StrictInt
 
 from .models.versionId_endpoint import modelVersion_endpoint_modelVersion
 from .models.base.misc import Model_Types, Sort, Period, AllowCommercialUse, NsfwLevel
@@ -237,6 +237,7 @@ class CiviClient:
             httpx_client: httpx.Client = httpx.Client(), 
             async_httpx_client: httpx.AsyncClient = httpx.AsyncClient()
             ):
+        self.api_key = api_key
         self.httpx_client = httpx_client
         self.async_httpx_client = async_httpx_client
 
@@ -254,7 +255,7 @@ class CiviClient:
             limit: None | StrictInt = None, 
             page: None | StrictInt = None, 
             query: None | str = None
-            ):
+            ) -> Response_Creaters:
         opts = Creators_API_Opts(limit=limit, page=page, query=query)
         return await async_creators(self.async_httpx_client, opts)
 
@@ -269,7 +270,7 @@ class CiviClient:
             sort: None | Sort = None, 
             period: None | Period = None, 
             page: None | StrictInt = None
-            ):
+            ) -> Response_Images:
         opts: Images_API_Opts = Images_API_Opts(
             limit=limit,
             postId=postId,
@@ -283,13 +284,116 @@ class CiviClient:
         )
         return images(self.httpx_client, opts)
 
-    async def async_images(self, opts: Images_API_Opts):
+    async def async_images(
+            self, 
+            limit: None | StrictInt = None, 
+            postId: None | StrictInt = None, 
+            modelId: None | StrictInt = None, 
+            modelVersionId: None | StrictInt = None, 
+            username: None | str = None, 
+            nsfw: None | bool | list[NsfwLevel] = None, 
+            sort: None | Sort = None, 
+            period: None | Period = None, 
+            page: None | StrictInt = None
+            ) -> Response_Images:
+        opts: Images_API_Opts = Images_API_Opts(
+            limit=limit,
+            postId=postId,
+            modelId=modelId,
+            modelVersionId=modelVersionId,
+            username=username,
+            nsfw=nsfw,
+            sort=sort,
+            period=period,
+            page=page
+        )
         return await async_images(self.async_httpx_client, opts)
 
-    def models(self, opts: Models_API_Opts):
+    def models(
+            self, 
+            limit: 	None | StrictInt = None, 	# The number of results to be returned per page. This can be a number between 1 and 100. By default, each page will return 100 results
+            page: 	None | StrictInt = None, 	# The page from which to start fetching models
+            query: 	None | str = None, 	# Search query to filter models by name
+            tag: 	None | str = None, 	# Search query to filter models by tag
+            username: 	None | str = None, 	# Search query to filter models by user
+            types: List[Model_Types] | None = None, 	# The type of model you want to filter with. If none is specified, it will return all types
+            sort: 	None | Sort = None, 	# The order in which you wish to sort the results
+            period: None | Period = None, 	# The time frame in which the models will be sorted
+            rating: None | StrictInt = None, 	# The rating you wish to filter the models with. If none is specified, it will return models with any rating
+            favorites: None | StrictBool = None, 	# (AUTHED) Filter to favorites of the authenticated user (this requires an API token or session cookie)
+            hidden: None | StrictBool = None, 	# (AUTHED) Filter to hidden models of the authenticated user (this requires an API token or session cookie)
+            primaryFileOnly: None | StrictBool = None, 	# Only include the primary file for each model (This will use your preferred format options if you use an API token or session cookie)
+            allowNoCredit: None | StrictBool = None, 	# Filter to models that require or don't require crediting the creator
+            allowDerivatives: None | StrictBool = None, 	# Filter to models that allow or don't allow creating derivatives
+            allowDifferentLicenses: None | StrictBool = None, # Filter to models that allow or don't allow derivatives to have a different license
+            allowCommercialUse: List[AllowCommercialUse] | None = None, 	# Filter to models based on their commercial permissions
+            nsfw: None | StrictBool = None, # If false, will return safer images and hide models that don't have safe images
+            supportsGeneration: None | StrictBool = None, 	# If true, will return models that support generation
+            ) -> Models_Response:
+        opts: Models_API_Opts = Models_API_Opts(
+            limit=limit,
+            page=page,
+            query=query,
+            tag=tag,
+            username=username,
+            types=types,
+            sort=sort,
+            period=period,
+            rating=rating,
+            favorites=favorites,
+            hidden=hidden,
+            primaryFileOnly=primaryFileOnly,
+            allowNoCredit=allowNoCredit,
+            allowDerivatives=allowDerivatives,
+            allowDifferentLicenses=allowDifferentLicenses,
+            allowCommercialUse=allowCommercialUse,
+            nsfw=nsfw,
+            supportsGeneration=supportsGeneration,
+            token=self.api_key
+        )
         return models(self.httpx_client, opts)
 
-    async def async_models(self, opts: Models_API_Opts):
+    async def async_models(self, 
+            limit: 	None | StrictInt = None, 	# The number of results to be returned per page. This can be a number between 1 and 100. By default, each page will return 100 results
+            page: 	None | StrictInt = None, 	# The page from which to start fetching models
+            query: 	None | str = None, 	# Search query to filter models by name
+            tag: 	None | str = None, 	# Search query to filter models by tag
+            username: 	None | str = None, 	# Search query to filter models by user
+            types: List[Model_Types] | None = None, 	# The type of model you want to filter with. If none is specified, it will return all types
+            sort: 	None | Sort = None, 	# The order in which you wish to sort the results
+            period: None | Period = None, 	# The time frame in which the models will be sorted
+            rating: None | StrictInt = None, 	# The rating you wish to filter the models with. If none is specified, it will return models with any rating
+            favorites: None | StrictBool = None, 	# (AUTHED) Filter to favorites of the authenticated user (this requires an API token or session cookie)
+            hidden: None | StrictBool = None, 	# (AUTHED) Filter to hidden models of the authenticated user (this requires an API token or session cookie)
+            primaryFileOnly: None | StrictBool = None, 	# Only include the primary file for each model (This will use your preferred format options if you use an API token or session cookie)
+            allowNoCredit: None | StrictBool = None, 	# Filter to models that require or don't require crediting the creator
+            allowDerivatives: None | StrictBool = None, 	# Filter to models that allow or don't allow creating derivatives
+            allowDifferentLicenses: None | StrictBool = None, # Filter to models that allow or don't allow derivatives to have a different license
+            allowCommercialUse: List[AllowCommercialUse] | None = None, 	# Filter to models based on their commercial permissions
+            nsfw: None | StrictBool = None, # If false, will return safer images and hide models that don't have safe images
+            supportsGeneration: None | StrictBool = None, 	# If true, will return models that support generation
+            ) -> Models_Response:
+        opts: Models_API_Opts = Models_API_Opts(
+            limit=limit,
+            page=page,
+            query=query,
+            tag=tag,
+            username=username,
+            types=types,
+            sort=sort,
+            period=period,
+            rating=rating,
+            favorites=favorites,
+            hidden=hidden,
+            primaryFileOnly=primaryFileOnly,
+            allowNoCredit=allowNoCredit,
+            allowDerivatives=allowDerivatives,
+            allowDifferentLicenses=allowDifferentLicenses,
+            allowCommercialUse=allowCommercialUse,
+            nsfw=nsfw,
+            supportsGeneration=supportsGeneration,
+            token=self.api_key
+        )
         return await async_models(self.async_httpx_client, opts)
 
     def get_model_by_id(self, modelId: int):
